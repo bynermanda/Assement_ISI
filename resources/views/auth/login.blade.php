@@ -32,6 +32,7 @@
                     <div>
                         <label for="username" class="block text-base font-bold">Username <span class="font-normal text-ink-48" lang="zh-Hant">帳號</span></label>
                         <input id="username" name="username" type="text" value="{{ old('username') }}" required autofocus autocomplete="username"
+                               autocapitalize="none" autocorrect="off" spellcheck="false"
                                @class(['mt-1.5 block h-11 w-full rounded border bg-white px-4 text-base',
                                        'border-hairline' => ! $errors->has('username'), 'border-rose-600' => $errors->has('username')])>
                         @error('username')

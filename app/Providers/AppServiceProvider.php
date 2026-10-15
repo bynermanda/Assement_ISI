@@ -50,7 +50,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Login: per username + IP (a whole factory can share one IP) and a wider cap per IP
         RateLimiter::for('login', fn (Request $request) => [
-            Limit::perMinute(5)->by(strtolower((string) $request->input('username')) . '|' . $request->ip()),
+            Limit::perMinute(5)->by(strtolower(trim((string) $request->input('username'))) . '|' . $request->ip()),
             Limit::perMinute(60)->by('ip' . $request->ip()),
         ]);
         // Every POST / PUT / PATCH / DELETE of a logged-in user: normal work stays far below this

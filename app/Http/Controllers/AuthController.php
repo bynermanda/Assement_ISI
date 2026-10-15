@@ -16,6 +16,10 @@ class AuthController extends Controller
 
     public function login(Request $request): RedirectResponse
     {
+        // Phone keyboards capitalise the first letter ("A2.johan") and add a space after a suggestion ("a2.johan ").
+        // Usernames are always lowercase (see UserController), so normalise; the password is left exactly as typed.
+        $request->merge(['username' => strtolower(trim((string) $request->input('username')))]);
+
         $credentials = $request->validate([
             'username' => ['required', 'string'],
             'password' => ['required', 'string'],
