@@ -1,0 +1,13 @@
+<?php
+// Pastikan hal berikut ada di App\Models\Employee
+
+protected $primaryKey = 'id_employee';
+public $incrementing = false;
+protected $keyType = 'string';
+
+protected $fillable = ['id_employee', 'name', 'department', 'position', 'grade', 'status'];
+
+public function assessments(): \Illuminate\Database\Eloquent\Relations\HasMany
+{
+    return $this->hasMany(Assessment::class, 'id_employee', 'id_employee');
+}

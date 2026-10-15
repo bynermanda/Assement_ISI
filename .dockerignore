@@ -1,0 +1,21 @@
+# never in the image: secrets, local dependencies, data files, logs
+.env
+.env.*
+!.env.example
+*.bak
+*.bak-*
+.git
+.github
+vendor
+node_modules
+storage/logs/*
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+bootstrap/cache/*.php
+database/seeders/*.csv
+database/sql/labor_type_grade_4_5.sql
+*.xls
+*.xlsx
+.phpunit.result.cache
+tests

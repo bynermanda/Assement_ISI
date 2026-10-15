@@ -1,0 +1,34 @@
+*.log
+.DS_Store
+.env
+.env.backup
+.env.production
+# every other env file (backups such as .env.bak-before-tunnel hold the Supabase password); only the example is shared
+.env.*
+!.env.example
+*.bak
+*.bak-*
+# employee personal data (names, NIK): never on GitHub; the app reads the live database
+/database/seeders/*.csv
+/database/sql/labor_type_grade_4_5.sql
+*.xls
+*.xlsx
+.phpactor.json
+.phpunit.result.cache
+/.fleet
+/.idea
+/.nova
+/.phpunit.cache
+/.vscode
+/.zed
+/auth.json
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/vendor
+Homestead.json
+Homestead.yaml
+Thumbs.db
