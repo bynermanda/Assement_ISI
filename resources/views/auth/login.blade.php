@@ -9,7 +9,7 @@
 {{-- hero-card-dark: black chapter, copy on the left, the form as a white card with the green corner square --}}
 <body class="flex min-h-full flex-col bg-black text-white">
     <header class="flex h-16 items-center px-6 md:px-12">
-        <img src="{{ asset('images/logo.png') }}" alt="PT Indosafety Sentosa" class="h-10 w-auto">
+        <span class="flex h-12 items-center rounded bg-white px-2"><img src="{{ asset('images/logo.png') }}" alt="PT Indosafety Sentosa" class="h-10 w-auto"></span>
     </header>
 
     <main class="flex flex-1 items-center px-6 py-12 md:px-12 md:py-20">

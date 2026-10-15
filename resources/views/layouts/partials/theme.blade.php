@@ -8,7 +8,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
-<link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
+<link rel="icon" type="image/png" sizes="256x256" href="{{ asset('images/favicon.png') }}">
+<link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+<link rel="apple-touch-icon" href="{{ asset('images/favicon.png') }}">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
     tailwind.config = {

@@ -59,7 +59,8 @@
     <nav class="sticky top-0 z-50 bg-black" x-data="{ mobileOpen: false }" aria-label="Menu utama">
         <div class="flex h-16 w-full items-center justify-between gap-8 px-6 md:px-10">
             <a href="{{ route('dashboard') }}" class="flex shrink-0 items-center gap-2" aria-label="PT Indosafety Sentosa">
-                <img src="{{ asset('images/logo.png') }}" alt="" class="h-10 w-auto">
+                {{-- the logo has a white background: shown on a small white plate on the black nav --}}
+                <span class="flex h-11 items-center rounded bg-white px-2"><img src="{{ asset('images/logo.png') }}" alt="" class="h-9 w-auto"></span>
                 <span class="hidden text-base font-semibold text-white xl:inline">PT Indosafety Sentosa</span>
             </a>
             @unless ($forcedChange)
