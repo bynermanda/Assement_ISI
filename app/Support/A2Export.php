@@ -108,6 +108,15 @@ final class A2Export
             . ($unit ? " · Unit: {$unit}" : '');
     }
 
+    /** Indonesian version for the PDF header (the Excel keeps description()). */
+    public function pdfDescription(): string
+    {
+        $unit = $this->filters['unit'] ? A2Unit::find($this->filters['unit'])?->name : null;
+
+        return 'Periode: ' . ($this->filters['period'] === ApprovedExport::ALL_PERIODS ? 'Semua periode' : ApprovedExport::labelFor($this->filters['period']))
+            . ($unit ? " · Unit: {$unit}" : '');
+    }
+
     public function filename(string $extension): string
     {
         $unit = $this->filters['unit'] ? A2Unit::find($this->filters['unit'])?->name : null;

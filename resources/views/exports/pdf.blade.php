@@ -1,96 +1,76 @@
 @php
     use App\Models\Assessment;
-    $layout = Assessment::criteriaLayout();
-    $h      = Assessment::HEADINGS;
-    $fill   = ['A' => '#059669', 'B' => '#0284c7', 'C' => '#fbbf24', 'D' => '#e11d48'];
+    $h     = Assessment::HEADINGS;
+    $fill  = ['A' => '#3f8500', 'B' => '#0284c7', 'C' => '#f2b100', 'D' => '#e52020'];
+    $ink   = ['C' => '#3d2b00'];
+    // A4 landscape, 8 mm margins = 281 mm. Fixed widths in mm so mPDF never squeezes a column.
+    $w     = ['no' => 8, 'nik' => 20, 'name' => 40, 'dept' => 22, 'crit' => 14.5, 'points' => 12, 'final' => 12, 'by' => 33];
+    $notes = 281 - ($w['no'] + $w['nik'] + $w['name'] + $w['dept'] + $w['crit'] * count(Assessment::CRITERIA) + $w['points'] + $w['final'] + $w['by']);
 @endphp
 <html>
 <head>
-<style>
-    body { font-family: dejavusans; font-size: 7.5pt; color: #0f172a; }
-    h1 { font-size: 13pt; margin: 0 0 2pt 0; }
-    .muted { color: #475569; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 0.5pt solid #94a3b8; padding: 2.5pt 3pt; vertical-align: top; }
-    thead th { background: #e2e8f0; text-align: center; vertical-align: middle; font-weight: bold; }
-    .c { text-align: center; }
-    .r { text-align: right; }
-    .grade { font-weight: bold; color: #ffffff; text-align: center; }
-    .small { font-size: 6.5pt; color: #475569; }
-    .summary td { border: none; padding: 1pt 8pt 1pt 0; }
-    .scale td { padding: 1.5pt 5pt; }
-</style>
+@include('exports.partials.pdf-style')
 </head>
 <body>
-    <h1>Hasil Penilaian Karyawan (Approved)</h1>
-    <p class="muted">PT Indosafety Sentosa · {{ $export->description() }} · {{ $rows->count() }} karyawan · exported {{ now()->format('d M Y H:i') }}</p>
-
-    <table class="summary" style="width: auto; margin: 4pt 0 8pt 0;">
+    {{-- summary --}}
+    <table class="kpi">
         <tr>
-            <td><b>Nilai Akhir:</b></td>
+            <td style="width: 32mm;"><span style="font-size: 6.5pt; color: #5e5e5e;">Jumlah karyawan</span><br><span style="font-size: 14pt; font-weight: bold; color: #000000;">{{ $rows->count() }}</span></td>
             @foreach ($counts as $letter => $n)
-                <td><span style="background: {{ $fill[$letter] }}; color: {{ $letter === 'C' ? '#451a03' : '#ffffff' }}; font-weight: bold; padding: 1pt 4pt;">&nbsp;{{ $letter }}&nbsp;</span> {{ $n }}</td>
+                <td style="width: 27mm; border-left: 3pt solid {{ $fill[$letter] }};"><span style="font-size: 6.5pt; color: #5e5e5e;">Nilai&nbsp;Akhir&nbsp;{{ $letter }}</span><br><span style="font-size: 14pt; font-weight: bold; color: #000000;">{{ $n }}</span></td>
             @endforeach
-            <td><b>Rata-rata:</b> {{ $rows->isEmpty() ? '-' : number_format($rows->avg('final_score'), 1) }}</td>
+            <td style="width: 32mm;"><span style="font-size: 6.5pt; color: #5e5e5e;">Rata-rata nilai</span><br><span style="font-size: 14pt; font-weight: bold; color: #000000;">{{ $rows->isEmpty() ? '-' : number_format($rows->avg('final_score'), 1) }}</span></td>
         </tr>
     </table>
 
-    <table repeat_header="1">
+    <table class="grid" repeat_header="1">
         <thead>
             <tr>
-                <th rowspan="3" style="width: 3%;">No</th>
-                <th rowspan="3" style="width: 7%;">NIK</th>
-                <th rowspan="3" style="width: 14%;">Nama</th>
-                <th rowspan="3" style="width: 11%;">Department / Section</th>
-                <th colspan="{{ count(Assessment::CRITERIA) }}">{{ $h['criteria'][0] }} {{ $h['criteria'][1] }} · {{ $h['weight'][0] }} {{ $h['weight'][1] }}</th>
-                <th rowspan="3" style="width: 5%;">{{ $h['points'][0] }}<br>{{ $h['points'][1] }}</th>
-                <th rowspan="3" style="width: 5%;">Nilai Akhir</th>
-                <th rowspan="3" style="width: 10%;">Penilai 1 /<br>Approved by</th>
-                <th rowspan="3">{{ $h['notes'][0] }}<br>{{ $h['notes'][1] }}</th>
+                <th rowspan="2" style="width: {{ $w['no'] }}mm;">No</th>
+                <th rowspan="2" style="width: {{ $w['nik'] }}mm;">NIK</th>
+                <th rowspan="2" style="width: {{ $w['name'] }}mm;">Nama</th>
+                <th rowspan="2" style="width: {{ $w['dept'] }}mm;">Departemen /<br>Seksi</th>
+                <th colspan="{{ count(Assessment::CRITERIA) }}">{{ $h['criteria'][0] }} {{ $h['criteria'][1] }} &nbsp;·&nbsp; {{ $h['weight'][0] }} {{ $h['weight'][1] }}</th>
+                <th rowspan="2" style="width: {{ $w['points'] }}mm;">{{ $h['points'][0] }}<br><span class="sub">{{ $h['points'][1] }}</span></th>
+                <th rowspan="2" style="width: {{ $w['final'] }}mm;">總分<br><span class="sub">Nilai Akhir</span></th>
+                <th rowspan="2" style="width: {{ $w['by'] }}mm;">Penilai /<br>Disetujui oleh</th>
+                <th rowspan="2" style="width: {{ $notes }}mm;">{{ $h['notes'][0] }}<br><span class="sub">{{ $h['notes'][1] }}</span></th>
             </tr>
             <tr>
-                @foreach (Assessment::CRITERIA as $column => $meta)
-                    @php [$group, $firstOfGroup, $size] = $layout[$column]; @endphp
-                    @if ($group === null)
-                        <th rowspan="2" style="width: 6%;">{{ $meta['zh'] }}<br>{{ $meta['id'] }}<br><span class="small">{{ $meta['weight'] }}%</span></th>
-                    @elseif ($firstOfGroup)
-                        <th colspan="{{ $size }}">{{ Assessment::CRITERIA_GROUPS[$group]['zh'] }}<br>{{ Assessment::CRITERIA_GROUPS[$group]['id'] }}</th>
-                    @endif
-                @endforeach
-            </tr>
-            <tr>
-                @foreach (Assessment::CRITERIA as $column => $meta)
-                    @if ($layout[$column][0] !== null)
-                        <th style="width: 6%;">{{ $meta['zh'] }}<br>{{ $meta['id'] }}<br><span class="small">{{ $meta['weight'] }}%</span></th>
-                    @endif
+                @foreach (Assessment::CRITERIA as $meta)
+                    <th style="width: {{ $w['crit'] }}mm;">@if ($meta['zh']){{ $meta['zh'] }}<br>@endif{{ $meta['id'] }}<br><span class="sub">{{ $meta['weight'] }}%</span></th>
                 @endforeach
             </tr>
         </thead>
         <tbody>
-            @forelse ($rows as $row)
-                <tr>
+            @forelse ($rows as $i => $row)
+                <tr class="{{ $i % 2 ? 'even' : '' }}">
                     <td class="c">{{ $row['no'] }}</td>
                     <td>{{ $row['nik'] }}<br><span class="small">{{ $row['period'] }}</span></td>
-                    <td>{{ $row['name'] }}<br><span class="small">{{ $row['position'] }}</span></td>
-                    <td>{{ $row['department'] }}<br><span class="small">{{ $row['section'] }}</span></td>
+                    <td><span class="b">{{ $row['name'] }}</span><br><span class="small">{{ $row['position'] }}</span></td>
+                    <td>{{ $row['department'] }}@if ($row['section'] && $row['section'] !== $row['department'])<br><span class="small">{{ $row['section'] }}</span>@endif</td>
                     @foreach ($row['grades'] as $letter)
-                        <td class="c"><b>{{ $letter }}</b></td>
+                        <td class="c b" style="font-size: 8.5pt;">{{ $letter }}</td>
                     @endforeach
-                    <td class="r"><b>{{ number_format($row['final_score'], 1) }}</b></td>
-                    <td class="grade" style="background: {{ $fill[$row['final_grade']] ?? '#94a3b8' }};{{ $row['final_grade'] === 'C' ? ' color: #451a03;' : '' }}">{{ $row['final_grade'] }}</td>
+                    <td class="r b" style="font-size: 8.5pt;">{{ number_format($row['final_score'], 1) }}</td>
+                    <td class="grade" style="background: {{ $fill[$row['final_grade']] ?? '#9a9a9a' }}; color: {{ $ink[$row['final_grade']] ?? '#ffffff' }};">{{ $row['final_grade'] }}</td>
                     <td>{{ $row['penilai1'] }}<br><span class="small">{{ $row['approved_by'] }} · {{ $row['approved_at'] }}</span></td>
-                    <td class="small">{!! nl2br(e($row['notes'])) !!}</td>
+                    <td class="small">{!! nl2br(e(preg_replace('/^Overall:/m', 'Catatan umum:', $row['notes']))) !!}</td>
                 </tr>
             @empty
-                <tr><td colspan="{{ 8 + count(Assessment::CRITERIA) }}" class="c">No approved assessments for these filters.</td></tr>
+                <tr><td colspan="{{ 8 + count(Assessment::CRITERIA) }}" class="c">Belum ada penilaian yang disetujui untuk filter ini.</td></tr>
             @endforelse
         </tbody>
     </table>
 
-    <table class="scale" style="width: auto; margin-top: 8pt;">
-        <tr><th colspan="2">{{ $h['scale'][0] }} {{ $h['scale'][1] }}</th></tr>
+    <table class="scale">
+        <tr><th colspan="3">{{ $h['scale'][0] }} {{ $h['scale'][1] }}</th></tr>
         @foreach (array_reverse(Assessment::finalGradeRanges(), true) as $letter => [$min, $max])
-            <tr><td>{{ $letter }}級 ({{ $min }}~{{ $max }})</td><td>Nilai {{ $letter }} ({{ $min }}~{{ $max }})</td></tr>
+            <tr>
+                <td style="width: 8mm; background: {{ $fill[$letter] }}; color: {{ $ink[$letter] ?? '#ffffff' }}; text-align: center; font-weight: bold;">{{ $letter }}</td>
+                <td style="width: 28mm;">{{ $letter }}級 ({{ $min }}~{{ $max }})</td>
+                <td style="width: 32mm;">Nilai {{ $letter }} ({{ $min }}~{{ $max }})</td>
+            </tr>
         @endforeach
     </table>
 </body>

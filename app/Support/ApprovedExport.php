@@ -118,6 +118,16 @@ final class ApprovedExport
         ])->filter()->implode(' · ');
     }
 
+    /** Indonesian version for the PDF header: "Periode: Oktober 2026 · Seksi: ASSY 3" (the Excel keeps description()). */
+    public function pdfDescription(): string
+    {
+        return collect([
+            'Periode: ' . ($this->filters['period'] === self::ALL_PERIODS ? 'Semua periode' : self::labelFor($this->filters['period'])),
+            $this->filters['department'] !== '' ? 'Departemen: ' . $this->filters['department'] : null,
+            $this->filters['section'] !== '' ? 'Seksi: ' . $this->filters['section'] : null,
+        ])->filter()->implode(' · ');
+    }
+
     /** "penilaian-approved-2026-10-press" */
     public function filename(string $extension): string
     {

@@ -53,8 +53,8 @@ class ExportController extends Controller
         $rows   = $export->rows();
 
         $mpdf = $this->mpdf();
-        $mpdf->SetTitle('Penilaian Approved · ' . $export->periodLabel());
-        $mpdf->SetFooter('PT Indosafety Sentosa · ' . $export->description() . '||{PAGENO} / {nbpg}');
+        $mpdf->SetTitle('Hasil Penilaian Karyawan · ' . $export->pdfDescription());
+        $this->pdfChrome($mpdf, 'Hasil Penilaian Karyawan (Assessment 1)', $export->pdfDescription());
         $mpdf->WriteHTML(view('exports.pdf', [
             'export' => $export,
             'rows'   => $rows,
@@ -104,8 +104,8 @@ class ExportController extends Controller
         $groups = $export->groups();
 
         $mpdf = $this->mpdf();
-        $mpdf->SetTitle('Assessment 2 Approved · ' . $export->description());
-        $mpdf->SetFooter('PT Indosafety Sentosa · Assessment 2 · ' . $export->description() . '||{PAGENO} / {nbpg}');
+        $mpdf->SetTitle('Hasil Assessment 2 · ' . $export->pdfDescription());
+        $this->pdfChrome($mpdf, 'Hasil Penilaian Pimpinan (Assessment 2)', $export->pdfDescription());
         $mpdf->WriteHTML(view('exports.a2-pdf', ['export' => $export, 'groups' => $groups, 'counts' => A2Export::finalCounts($groups)])->render());
 
         return response($mpdf->Output('', 'S'), 200, [
@@ -278,6 +278,15 @@ class ExportController extends Controller
     }
 
     /** A4 landscape; autoScriptToLang / autoLangToFont give the Chinese headings a CJK font (Sun-ExtA). */
+    /** Same page header (company logo, title, filters) and footer on every PDF page. */
+    private function pdfChrome(Mpdf $mpdf, string $title, string $subtitle): void
+    {
+        $mpdf->SetHTMLHeader(view('exports.partials.pdf-header', ['title' => $title, 'subtitle' => $subtitle])->render());
+        $mpdf->SetHTMLFooter('<table width="100%" style="font-family: dejavusans; font-size: 7pt; color: #5e5e5e; border-top: 0.5pt solid #9a9a9a;"><tr>'
+            . '<td style="padding-top: 1.5mm;">PT Indosafety Sentosa · ' . e($title) . ' · ' . e($subtitle) . '</td>'
+            . '<td style="padding-top: 1.5mm; text-align: right;">Halaman {PAGENO} / {nbpg}</td></tr></table>');
+    }
+
     private function mpdf(): Mpdf
     {
         $tempDir = storage_path('app/mpdf');
@@ -286,7 +295,8 @@ class ExportController extends Controller
         }
 
         return new Mpdf([
-            'mode' => 'utf-8', 'format' => 'A4-L', 'margin_left' => 8, 'margin_right' => 8, 'margin_top' => 10, 'margin_bottom' => 12,
+            'mode' => 'utf-8', 'format' => 'A4-L', 'margin_left' => 8, 'margin_right' => 8, 'margin_top' => 30, 'margin_bottom' => 13,
+            'margin_header' => 7, 'margin_footer' => 6,
             'tempDir' => $tempDir, 'autoScriptToLang' => true, 'autoLangToFont' => true, 'default_font' => 'dejavusans',
         ]);
     }
