@@ -84,9 +84,9 @@ Route::middleware(['auth', 'throttle:writes'])->group(function () {
 
             Route::prefix('admin/assessments')->name('admin.assessments.')->group(function () {
                 Route::get('/', [AdminAssessmentController::class, 'index'])->name('index');
+                // HRD attendance import: parsed + previewed in the browser, saved here as JSON in one batch
                 Route::get('/import', [AssessmentImportController::class, 'create'])->name('import');
-                Route::get('/import/template', [AssessmentImportController::class, 'template'])->name('import.template');
-                Route::post('/import', [AssessmentImportController::class, 'store'])->name('import.store');
+                Route::post('/import', [AssessmentImportController::class, 'store'])->middleware('throttle:bulk')->name('import.store');
                 Route::get('/create', [AdminAssessmentController::class, 'create'])->name('create');
                 Route::post('/', [AdminAssessmentController::class, 'store'])->name('store');
                 Route::get('/{assessment}/edit', [AdminAssessmentController::class, 'edit'])->name('edit');
