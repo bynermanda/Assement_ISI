@@ -10,6 +10,7 @@ use App\Http\Controllers\BulkAssessmentController;
 use App\Http\Controllers\CriteriaDescriptionController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EmployeeImportController;
+use App\Http\Controllers\GradeScaleController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\UserController;
@@ -72,6 +73,10 @@ Route::middleware(['auth', 'throttle:writes'])->group(function () {
                 Route::put('/a2/{unit}/criteria', [A2GuidelineController::class, 'saveCriteria'])->name('a2.criteria');
                 Route::put('/a2/{unit}/participants', [A2GuidelineController::class, 'saveParticipants'])->name('a2.participants');
                 Route::post('/a2/{unit}/participants', [A2GuidelineController::class, 'addParticipant'])->name('a2.participants.add');
+
+                // Guidelines > Skala Nilai Akhir: the A / B / C / D thresholds for everybody (admin only)
+                Route::get('/scale', [GradeScaleController::class, 'edit'])->name('scale');
+                Route::put('/scale', [GradeScaleController::class, 'update'])->name('scale.update');
             });
 
             // Export of APPROVED assessments only; the buttons sit on the Assessments page (A1) and the Assessment 2 page (A2)

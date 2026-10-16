@@ -426,7 +426,7 @@ class ExportController extends Controller
     private function fillSummarySheet(Worksheet $sheet, ApprovedExport $export, Collection $rows): void
     {
         $sheet->setTitle('Ringkasan');
-        $letters = array_keys(Assessment::FINAL_GRADES);
+        $letters = array_keys(Assessment::finalGrades());
 
         $sheet->setCellValue('A1', 'Ringkasan Nilai Akhir (Approved)');
         $sheet->setCellValue('A2', $export->description());

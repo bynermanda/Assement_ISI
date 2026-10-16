@@ -36,7 +36,7 @@
                 };
                 grade.classFor = letter => classes[letter] ?? classes['-'];
                 return grade;
-            })(@js(Assessment::FINAL_GRADES), @js(collect(['A', 'B', 'C', 'D', '-'])->mapWithKeys(fn ($l) => [$l => Assessment::finalGradeClass($l)])));
+            })(@js(Assessment::finalGrades()), @js(collect(['A', 'B', 'C', 'D', '-'])->mapWithKeys(fn ($l) => [$l => Assessment::finalGradeClass($l)])));
         </script>
     @endpush
 @endonce

@@ -86,9 +86,36 @@ class Assessment extends Model
 
     /**
      * 等計分數 Perhitungan Nilai: final score -> final grade. Letter => lowest score of that grade, highest first.
-     * A 91~100, B 80~90, C 60~79, D 0~59.
+     * DEFAULT only (A 91~100, B 80~90, C 60~79, D 0~59): the admin changes the scale in Panduan › Skala Nilai Akhir,
+     * so always read finalGrades().
      */
     public const FINAL_GRADES = ['A' => 91, 'B' => 80, 'C' => 60, 'D' => 0];
+
+    private static ?array $finalGrades = null;
+
+    /**
+     * The scale in use (setting 'final_grades', else FINAL_GRADES): ['A' => min, 'B' => min, 'C' => min, 'D' => 0].
+     * Applies to every employee, department, Assessment 1 and 2, the forms, approvals and exports.
+     */
+    public static function finalGrades(): array
+    {
+        if (self::$finalGrades !== null) {
+            return self::$finalGrades;
+        }
+        $saved = AppSetting::get('final_grades');
+        $valid = is_array($saved) && isset($saved['A'], $saved['B'], $saved['C'])
+            && 0 < (int) $saved['C'] && (int) $saved['C'] < (int) $saved['B'] && (int) $saved['B'] < (int) $saved['A'] && (int) $saved['A'] <= 100;
+
+        return self::$finalGrades = $valid
+            ? ['A' => (int) $saved['A'], 'B' => (int) $saved['B'], 'C' => (int) $saved['C'], 'D' => 0]
+            : self::FINAL_GRADES;
+    }
+
+    /** Forget the per-request copy (after the admin saved a new scale). */
+    public static function forgetFinalGrades(): void
+    {
+        self::$finalGrades = null;
+    }
 
     /** Key in `notes` for the note about the employee as a whole (one per row in the bulk grid). */
     public const NOTE_GENERAL = 'general';
@@ -289,14 +316,14 @@ class Assessment extends Model
         return round($total, 2);
     }
 
-    /** Final grade (A/B/C/D) of a final score, per FINAL_GRADES; "-" when there is no score. */
+    /** Final grade (A/B/C/D) of a final score, per finalGrades(); "-" when there is no score. */
     public static function finalGradeFor(int|float|string|null $score): string
     {
         if ($score === null || $score === '') {
             return '-';
         }
 
-        foreach (self::FINAL_GRADES as $letter => $minimum) {
+        foreach (self::finalGrades() as $letter => $minimum) {
             if ((float) $score >= $minimum) {
                 return $letter;
             }
@@ -311,7 +338,7 @@ class Assessment extends Model
         $ranges = [];
         $upper  = 100;
 
-        foreach (self::FINAL_GRADES as $letter => $minimum) {
+        foreach (self::finalGrades() as $letter => $minimum) {
             $ranges[$letter] = [$minimum, $upper];
             $upper           = $minimum - 1;
         }

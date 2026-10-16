@@ -90,7 +90,7 @@ final class A2Export
 
     public static function finalCounts(Collection $groups): array
     {
-        $counts = array_fill_keys(array_keys(Assessment::FINAL_GRADES), 0);
+        $counts = array_fill_keys(array_keys(Assessment::finalGrades()), 0);
         foreach ($groups as $g) {
             foreach ($g['rows'] as $row) {
                 if (isset($counts[$row['final_grade']])) { $counts[$row['final_grade']]++; }

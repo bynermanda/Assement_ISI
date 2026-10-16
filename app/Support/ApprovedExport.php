@@ -84,7 +84,7 @@ final class ApprovedExport
     /** Count per final grade (A/B/C/D) of the given rows. */
     public static function finalCounts(Collection $rows): array
     {
-        $counts = array_fill_keys(array_keys(Assessment::FINAL_GRADES), 0);
+        $counts = array_fill_keys(array_keys(Assessment::finalGrades()), 0);
 
         foreach ($rows as $row) {
             if (isset($counts[$row['final_grade']])) {
