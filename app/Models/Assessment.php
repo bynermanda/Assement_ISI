@@ -86,35 +86,78 @@ class Assessment extends Model
 
     /**
      * 等計分數 Perhitungan Nilai: final score -> final grade. Letter => lowest score of that grade, highest first.
-     * DEFAULT only (A 91~100, B 80~90, C 60~79, D 0~59): the admin changes the scale in Panduan › Skala Nilai Akhir,
-     * so always read finalGrades().
+     * The scale used BEFORE the first saved version (A 91~100, B 80~90, C 60~79, D 0~59). The admin adds versions in
+     * Panduan › Skala Nilai Akhir, each valid from a period on, so always read finalGrades($period).
      */
     public const FINAL_GRADES = ['A' => 91, 'B' => 80, 'C' => 60, 'D' => 0];
 
-    private static ?array $finalGrades = null;
+    /** Setting key: list of scale versions [['from' => 'YYYY-MM', 'A' => .., 'B' => .., 'C' => .., 'by' => .., 'at' => ..], ...]. */
+    public const SCALE_SETTING = 'final_grade_scales';
 
-    /**
-     * The scale in use (setting 'final_grades', else FINAL_GRADES): ['A' => min, 'B' => min, 'C' => min, 'D' => 0].
-     * Applies to every employee, department, Assessment 1 and 2, the forms, approvals and exports.
-     */
-    public static function finalGrades(): array
+    private static ?array $scaleVersions = null;
+
+    /** Saved scale versions, valid ones only, oldest first. */
+    public static function scaleVersions(): array
     {
-        if (self::$finalGrades !== null) {
-            return self::$finalGrades;
+        if (self::$scaleVersions !== null) {
+            return self::$scaleVersions;
         }
-        $saved = AppSetting::get('final_grades');
-        $valid = is_array($saved) && isset($saved['A'], $saved['B'], $saved['C'])
-            && 0 < (int) $saved['C'] && (int) $saved['C'] < (int) $saved['B'] && (int) $saved['B'] < (int) $saved['A'] && (int) $saved['A'] <= 100;
+        $versions = array_values(array_filter((array) AppSetting::get(self::SCALE_SETTING, []), fn ($v) => is_array($v)
+            && self::isPeriod($v['from'] ?? null) && isset($v['A'], $v['B'], $v['C'])
+            && 0 < (int) $v['C'] && (int) $v['C'] < (int) $v['B'] && (int) $v['B'] < (int) $v['A'] && (int) $v['A'] <= 100));
+        usort($versions, fn ($x, $y) => strcmp($x['from'], $y['from']));
 
-        return self::$finalGrades = $valid
-            ? ['A' => (int) $saved['A'], 'B' => (int) $saved['B'], 'C' => (int) $saved['C'], 'D' => 0]
-            : self::FINAL_GRADES;
+        return self::$scaleVersions = $versions;
     }
 
-    /** Forget the per-request copy (after the admin saved a new scale). */
+    /**
+     * The scale of a period ('YYYY-MM'; null = the current period): the latest version valid from that period or
+     * earlier, else FINAL_GRADES. A period keeps its scale forever: a later version never changes earlier periods.
+     */
+    public static function finalGrades(?string $period = null): array
+    {
+        $period ??= now()->format('Y-m');
+        $scale    = self::FINAL_GRADES;
+        if (! self::isPeriod($period)) {
+            return $scale;   // malformed old periods: the original scale
+        }
+        foreach (self::scaleVersions() as $v) {
+            if (strcmp($v['from'], $period) > 0) {
+                break;
+            }
+            $scale = ['A' => (int) $v['A'], 'B' => (int) $v['B'], 'C' => (int) $v['C'], 'D' => 0];
+        }
+
+        return $scale;
+    }
+
+    /**
+     * Legend(s) for an export: one scale for a single period; for every period ('all') each scale with the periods it
+     * covers. [['label' => null|string, 'ranges' => finalGradeRanges()], ...]
+     */
+    public static function scaleLegends(string $period): array
+    {
+        if (self::isPeriod($period) || self::scaleVersions() === []) {
+            return [['label' => null, 'ranges' => self::finalGradeRanges(self::isPeriod($period) ? $period : null)]];
+        }
+        $versions = self::scaleVersions();
+        $legends  = [['label' => 'Sebelum ' . \App\Support\ApprovedExport::labelFor($versions[0]['from']), 'ranges' => self::rangesOf(self::FINAL_GRADES)]];
+        foreach ($versions as $v) {
+            $legends[] = ['label' => 'Mulai ' . \App\Support\ApprovedExport::labelFor($v['from']), 'ranges' => self::finalGradeRanges($v['from'])];
+        }
+
+        return $legends;
+    }
+
+    /** Forget the per-request copy (after the admin saved a scale version). */
     public static function forgetFinalGrades(): void
     {
-        self::$finalGrades = null;
+        self::$scaleVersions = null;
+    }
+
+    public static function isPeriod(?string $period): bool
+    {
+        return (bool) preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', (string) $period);
     }
 
     /** Key in `notes` for the note about the employee as a whole (one per row in the bulk grid). */
@@ -316,14 +359,17 @@ class Assessment extends Model
         return round($total, 2);
     }
 
-    /** Final grade (A/B/C/D) of a final score, per finalGrades(); "-" when there is no score. */
-    public static function finalGradeFor(int|float|string|null $score): string
+    /**
+     * Final grade (A/B/C/D) of a final score with the scale of its period (null = current period);
+     * "-" when there is no score. Pass the assessment's period so earlier months keep their own scale.
+     */
+    public static function finalGradeFor(int|float|string|null $score, ?string $period = null): string
     {
         if ($score === null || $score === '') {
             return '-';
         }
 
-        foreach (self::finalGrades() as $letter => $minimum) {
+        foreach (self::finalGrades($period) as $letter => $minimum) {
             if ((float) $score >= $minimum) {
                 return $letter;
             }
@@ -332,13 +378,18 @@ class Assessment extends Model
         return 'D';
     }
 
-    /** "A 91~100", "B 80~90", ...: the range of each final grade, highest first. */
-    public static function finalGradeRanges(): array
+    /** "A 91~100", "B 80~90", ...: the range of each final grade of a period's scale, highest first. */
+    public static function finalGradeRanges(?string $period = null): array
+    {
+        return self::rangesOf(self::finalGrades($period));
+    }
+
+    private static function rangesOf(array $scale): array
     {
         $ranges = [];
         $upper  = 100;
 
-        foreach (self::finalGrades() as $letter => $minimum) {
+        foreach ($scale as $letter => $minimum) {
             $ranges[$letter] = [$minimum, $upper];
             $upper           = $minimum - 1;
         }

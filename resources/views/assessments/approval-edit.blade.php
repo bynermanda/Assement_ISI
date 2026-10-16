@@ -47,7 +47,7 @@
                 $notes[$key] = old("notes.{$key}", $assessment->notes[$key] ?? '');
             }
         @endphp
-        @include('assessments.partials.criteria-table', ['notes' => $notes])
+        @include('assessments.partials.criteria-table', ['notes' => $notes, 'scalePeriod' => $assessment->period])
     </div>
 
 

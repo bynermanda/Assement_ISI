@@ -77,6 +77,7 @@ Route::middleware(['auth', 'throttle:writes'])->group(function () {
                 // Guidelines > Skala Nilai Akhir: the A / B / C / D thresholds for everybody (admin only)
                 Route::get('/scale', [GradeScaleController::class, 'edit'])->name('scale');
                 Route::put('/scale', [GradeScaleController::class, 'update'])->name('scale.update');
+                Route::delete('/scale/{from}', [GradeScaleController::class, 'destroy'])->where('from', '\d{4}-\d{2}')->name('scale.destroy');
             });
 
             // Export of APPROVED assessments only; the buttons sit on the Assessments page (A1) and the Assessment 2 page (A2)

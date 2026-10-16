@@ -48,7 +48,7 @@ final class A2Export
                 'position'    => trim(($a->employee?->position ?? '') . ' · ' . ($a->employee?->grade ?? ''), ' ·'),
                 'grades'      => $criteria->mapWithKeys(fn ($c) => [$c->id => Assessment::letterFor($a->scores[$c->id] ?? null)])->all(),
                 'final_score' => (float) $a->final_score,
-                'final_grade' => Assessment::finalGradeFor($a->final_score),
+                'final_grade' => Assessment::finalGradeFor($a->final_score, $a->period),
                 'penilai'     => $a->creator?->name ?? $a->created_by ?? '-',
                 'approved_by' => $a->approver?->name ?? $a->approved_by ?? '-',
                 'approved_at' => $a->updated_at?->format('d M Y'),

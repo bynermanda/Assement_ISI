@@ -14,7 +14,7 @@
         'id'         => $a->id,
         'unit'       => ReviewRules::unitOf($a->employee),
         'text'       => mb_strtolower($a->employee->name . ' ' . $a->employee->id_employee),
-        'final'      => Assessment::finalGradeFor($a->final_score),
+        'final'      => Assessment::finalGradeFor($a->final_score, $a->period),
         'selectable' => ReviewRules::mayApprove(auth()->user(), $a),   // four-eyes; Penilai 1 + 2 accounts may approve their own section
     ])->values();
     $units = $rows->pluck('unit')->unique()->sort(SORT_NATURAL | SORT_FLAG_CASE)->values();

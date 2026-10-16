@@ -1,6 +1,7 @@
 {{--
     等計分數 Perhitungan Nilai: legend of the final grades, plus window.finalGrade() for Alpine
     (same thresholds as Assessment::finalGradeFor()). Include once per page; the script is pushed once.
+    $scalePeriod (optional, "YYYY-MM"): the period whose scale applies; default the current period.
 --}}
 @use('App\Models\Assessment')
 <div class="inline-block overflow-hidden rounded border border-slate-300 bg-white text-sm">
@@ -10,7 +11,7 @@
     </div>
     <table class="text-sm">
         <tbody class="divide-y divide-slate-200">
-            @foreach (array_reverse(Assessment::finalGradeRanges(), true) as $letter => [$min, $max])
+            @foreach (array_reverse(Assessment::finalGradeRanges($scalePeriod ?? null), true) as $letter => [$min, $max])
                 <tr>
                     <td class="px-3 py-1 text-center">
                         <span class="inline-flex w-6 justify-center rounded px-1 text-xs font-bold ring-1 ring-inset {{ Assessment::finalGradeClass($letter) }}">{{ $letter }}</span>
@@ -36,7 +37,7 @@
                 };
                 grade.classFor = letter => classes[letter] ?? classes['-'];
                 return grade;
-            })(@js(Assessment::finalGrades()), @js(collect(['A', 'B', 'C', 'D', '-'])->mapWithKeys(fn ($l) => [$l => Assessment::finalGradeClass($l)])));
+            })(@js(Assessment::finalGrades($scalePeriod ?? null)), @js(collect(['A', 'B', 'C', 'D', '-'])->mapWithKeys(fn ($l) => [$l => Assessment::finalGradeClass($l)])));
         </script>
     @endpush
 @endonce

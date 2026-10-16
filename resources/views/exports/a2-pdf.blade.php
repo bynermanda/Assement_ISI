@@ -109,9 +109,11 @@
         </table>
     @endforeach
 
+    {{-- the scale of the exported period (each letter above used its own period's scale); "all periods": every version --}}
+    @foreach (Assessment::scaleLegends($export->filters['period']) as $legend)
     <table class="scale">
-        <tr><th colspan="3">{{ $h['scale'][0] }} {{ $h['scale'][1] }}</th></tr>
-        @foreach (array_reverse(Assessment::finalGradeRanges(), true) as $letter => [$min, $max])
+        <tr><th colspan="3">{{ $h['scale'][0] }} {{ $h['scale'][1] }}@if ($legend['label']) · {{ $legend['label'] }}@endif</th></tr>
+        @foreach (array_reverse($legend['ranges'], true) as $letter => [$min, $max])
             <tr>
                 <td style="width: 8mm; background: {{ $fill[$letter] }}; color: {{ $ink[$letter] ?? '#ffffff' }}; text-align: center; font-weight: bold;">{{ $letter }}</td>
                 <td style="width: 28mm;">{{ $letter }}級 ({{ $min }}~{{ $max }})</td>
@@ -119,5 +121,6 @@
             </tr>
         @endforeach
     </table>
+    @endforeach
 </body>
 </html>

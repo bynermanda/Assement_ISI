@@ -29,7 +29,7 @@
             <h2 class="font-semibold text-slate-900">{{ $assessment->employee?->name }}</h2>
             <p class="text-sm text-slate-500">{{ $assessment->employee_id }} · {{ $assessment->employee?->department }} · {{ $assessment->employee?->position }} · {{ $assessment->employee?->grade }}</p>
         </div>
-        @include('a2.partials.table', ['editable' => false])
+        @include('a2.partials.table', ['editable' => false, 'scalePeriod' => $assessment->period])
     </div>
 
     <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">

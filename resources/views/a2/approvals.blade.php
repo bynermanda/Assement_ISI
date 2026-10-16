@@ -9,7 +9,7 @@
 @section('content')
 @php
     $me   = auth()->user()->username;
-    $rows = $assessments->map(fn ($a) => ['id' => $a->id, 'final' => Assessment::finalGradeFor($a->final_score), 'selectable' => $a->created_by !== $me])->values();
+    $rows = $assessments->map(fn ($a) => ['id' => $a->id, 'final' => Assessment::finalGradeFor($a->final_score, $a->period), 'selectable' => $a->created_by !== $me])->values();
 @endphp
 <div x-data="a2Approvals({ rows: @js($rows) })" class="pb-24">
     @if ($assessments->isEmpty())

@@ -71,7 +71,7 @@ final class ApprovedExport
             'position'    => trim(($e?->position ?? '') . ' · ' . ($e?->grade ?? ''), ' ·'),
             'grades'      => collect(Assessment::CRITERIA)->mapWithKeys(fn ($m, $c) => [$c => Assessment::letterFor($a->{$c})])->all(),
             'final_score' => (float) $a->final_score,
-            'final_grade' => Assessment::finalGradeFor($a->final_score),
+            'final_grade' => Assessment::finalGradeFor($a->final_score, $a->period),
             'penilai1'    => $a->creator?->name ?? $a->created_by ?? '-',
             'approved_by' => $a->approver?->name ?? $a->approved_by ?? '-',
             'approved_at' => $a->updated_at?->format('d M Y'),

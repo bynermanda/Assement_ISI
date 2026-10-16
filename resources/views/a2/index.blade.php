@@ -29,7 +29,7 @@
             </thead>
             <tbody class="divide-y divide-slate-100">
                 @forelse ($participants as $p)
-                    @php $a = $assessments->get($p->employee_id); $letter = $a && $a->status !== Assessment::STATUS_DRAFT ? Assessment::finalGradeFor($a->final_score) : null; @endphp
+                    @php $a = $assessments->get($p->employee_id); $letter = $a && $a->status !== Assessment::STATUS_DRAFT ? Assessment::finalGradeFor($a->final_score, $a->period) : null; @endphp
                     <tr>
                         <td class="px-4 py-3">
                             <p class="font-medium text-slate-900">{{ $p->employee?->name ?? $p->employee_id }}</p>

@@ -151,10 +151,13 @@ class ExportController extends Controller
             $this->paintFinal($sheet, "A{$r}", $letter);
         }
         $r += 2;
-        $sheet->setCellValue("A{$r}", $h['scale'][0] . ' ' . $h['scale'][1])->getStyle("A{$r}")->getFont()->setBold(true);
-        foreach (array_reverse(Assessment::finalGradeRanges(), true) as $letter => [$min, $max]) {
-            $r++;
-            $sheet->fromArray(["{$letter}級 ({$min}~{$max})", "Nilai {$letter} ({$min}~{$max})"], null, "A{$r}");
+        foreach (Assessment::scaleLegends($export->filters['period']) as $legend) {
+            $sheet->setCellValue("A{$r}", $h['scale'][0] . ' ' . $h['scale'][1] . ($legend['label'] ? ' · ' . $legend['label'] : ''))->getStyle("A{$r}")->getFont()->setBold(true);
+            foreach (array_reverse($legend['ranges'], true) as $letter => [$min, $max]) {
+                $r++;
+                $sheet->fromArray(["{$letter}級 ({$min}~{$max})", "Nilai {$letter} ({$min}~{$max})"], null, "A{$r}");
+            }
+            $r += 2;
         }
 
         foreach (['A' => 6, 'B' => 10, 'C' => 13, 'D' => 28, 'E' => 24, 'F' => 30, 'G' => 24, 'H' => 13, 'I' => 11, 'J' => 11] as $c => $w) {
@@ -447,11 +450,14 @@ class ExportController extends Controller
         $sheet->getStyle("A4:H4")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('E2E8F0');
 
         $s = $r + 3;
-        $sheet->setCellValue("A{$s}", Assessment::HEADINGS['scale'][0] . ' ' . Assessment::HEADINGS['scale'][1]);
-        $sheet->getStyle("A{$s}")->getFont()->setBold(true);
-        foreach (array_reverse(Assessment::finalGradeRanges(), true) as $letter => [$min, $max]) {
-            $s++;
-            $sheet->fromArray(["{$letter}級 ({$min}~{$max})", "Nilai {$letter} ({$min}~{$max})"], null, "A{$s}");
+        foreach (Assessment::scaleLegends($export->filters['period']) as $legend) {
+            $sheet->setCellValue("A{$s}", Assessment::HEADINGS['scale'][0] . ' ' . Assessment::HEADINGS['scale'][1] . ($legend['label'] ? ' · ' . $legend['label'] : ''));
+            $sheet->getStyle("A{$s}")->getFont()->setBold(true);
+            foreach (array_reverse($legend['ranges'], true) as $letter => [$min, $max]) {
+                $s++;
+                $sheet->fromArray(["{$letter}級 ({$min}~{$max})", "Nilai {$letter} ({$min}~{$max})"], null, "A{$s}");
+            }
+            $s += 2;
         }
 
         $sheet->getColumnDimension('A')->setWidth(30);
