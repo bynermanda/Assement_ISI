@@ -20,8 +20,9 @@ use Illuminate\View\View;
  *  - Point 1 Tingkat Kehadiran (score_attendance): max(Ijin Pribadi days, Sakit days) -> 0 = A, <=1 = B, <=3 = C, >3 = D
  *  - Point 2 Berada di area kerja (score_tardiness): Terlambat (times)          -> 0 = A,  1 = B, 2-3 = C, >3 = D
  *
- * Rows are saved as Draft and stay editable (not locked): the Penilai completes the other criteria and may still
- * change these two. Assessments already sent or approved for the period are never touched.
+ * Rows are saved as Draft with hrd_imported_at set: the two attendance scores are then LOCKED for the Penilai and the
+ * approver (Assessment::hrdLocked(), enforced by every save path); the Penilai completes the other four criteria.
+ * HRD can correct them by importing again. Assessments already sent or approved for the period are never touched.
  */
 class AssessmentImportController extends Controller
 {
@@ -132,18 +133,19 @@ class AssessmentImportController extends Controller
                     'created_by'  => $current?->created_by ?? $user->username,
                     'created_at'  => $current?->created_at ?? $now,
                     'updated_at'  => $now,
+                    'hrd_imported_at' => $now,   // locks score_attendance + score_tardiness, status stays Draft
                 ];
                 $current ? $updated++ : $created++;
             }
 
-            // existing rows: only the two attendance scores, the total and the notes change
+            // existing rows: only the two attendance scores, the total, the notes and the HRD lock change
             foreach (array_chunk($upsert, 200) as $chunk) {
-                Assessment::upsert($chunk, ['employee_id', 'period'], ['score_attendance', 'score_tardiness', 'final_score', 'notes', 'updated_at']);
+                Assessment::upsert($chunk, ['employee_id', 'period'], ['score_attendance', 'score_tardiness', 'final_score', 'notes', 'updated_at', 'hrd_imported_at']);
             }
         });
 
         return response()->json([
-            'message' => "{$created} draf baru, {$updated} draf diperbarui" . ($skipped ? ', ' . count($skipped) . ' dilewati' : '') . '.',
+            'message' => "{$created} draf baru, {$updated} draf diperbarui (nilai kehadiran terkunci)" . ($skipped ? ', ' . count($skipped) . ' dilewati' : '') . '.',
             'created' => $created,
             'updated' => $updated,
             'skipped' => $skipped,

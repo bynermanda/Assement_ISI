@@ -2,7 +2,7 @@
 
 @section('title', 'Impor kehadiran')
 @section('heading', 'Impor Kehadiran (HRD)')
-@section('subheading', 'Unggah file absensi HRD. File dibaca dan dihitung di browser, periksa / ubah nilainya di tabel, lalu simpan. Hasil disimpan sebagai Draf: Penilai tetap bisa mengubahnya dan melengkapi kriteria lain.')
+@section('subheading', 'Unggah file absensi HRD. File dibaca dan dihitung di browser, periksa / ubah nilainya di tabel, lalu simpan. Setelah disimpan, nilai Poin 1 dan 2 terkunci (tidak bisa diubah Penilai / Approver); status tetap Draf dan Penilai melengkapi 4 kriteria lain. Koreksi: impor ulang.')
 
 @section('content')
 {{--
@@ -141,7 +141,7 @@
     {{-- 3. save bar --}}
     <div x-show="rows.length" x-cloak class="fixed inset-x-0 bottom-0 z-40 border-t border-hairline bg-white shadow-sticky">
         <div class="flex min-h-[64px] w-full flex-col gap-2 px-6 py-3 sm:flex-row sm:items-center sm:justify-between md:px-10">
-            <p class="text-base text-slate-700"><span class="font-bold text-slate-900" x-text="counts.ok"></span> karyawan akan disimpan sebagai Draf untuk periode <span class="font-bold" x-text="period"></span>
+            <p class="text-base text-slate-700"><span class="font-bold text-slate-900" x-text="counts.ok"></span> karyawan akan disimpan (Draf, nilai kehadiran terkunci) untuk periode <span class="font-bold" x-text="period"></span>
                 <span x-show="changed" class="ml-2 text-slate-600">· <span x-text="changed"></span> nilai diubah manual</span></p>
             <button type="button" @click="save()" :disabled="saving || counts.ok === 0"
                     class="rounded bg-teal-600 px-6 py-3 text-base font-bold" x-text="saving ? 'Menyimpan…' : 'Simpan ke Matriks Penilaian'"></button>
@@ -299,7 +299,7 @@
             async save() {
                 const rows = this.rows.filter(r => r.state === 'ok');
                 if (! rows.length) return;
-                if (! confirm(`Simpan ${rows.length} karyawan sebagai Draf untuk periode ${this.period}? Penilaian yang sudah dikirim / disetujui tidak diubah.`)) return;
+                if (! confirm(`Simpan ${rows.length} karyawan untuk periode ${this.period}? Nilai Poin 1 dan 2 akan TERKUNCI (Penilai tidak bisa mengubahnya); status tetap Draf. Penilaian yang sudah dikirim / disetujui tidak diubah.`)) return;
                 this.saving = true; this.result = ''; this.skipped = [];
                 try {
                     const response = await fetch(config.storeUrl, {
