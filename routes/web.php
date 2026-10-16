@@ -84,6 +84,9 @@ Route::middleware(['auth', 'throttle:writes'])->group(function () {
             Route::middleware('throttle:exports')->group(function () {
                 Route::get('admin/exports/xlsx', [ExportController::class, 'xlsx'])->name('exports.xlsx');
                 Route::get('admin/exports/pdf', [ExportController::class, 'pdf'])->name('exports.pdf');
+                // multi-period recap with averages (A1 or A2 via ?type=)
+                Route::get('admin/exports/average/xlsx', [ExportController::class, 'averageXlsx'])->name('exports.average.xlsx');
+                Route::get('admin/exports/average/pdf', [ExportController::class, 'averagePdf'])->name('exports.average.pdf');
                 Route::get('admin/a2/export/xlsx', [ExportController::class, 'a2Xlsx'])->name('a2.export.xlsx');
                 Route::get('admin/a2/export/pdf', [ExportController::class, 'a2Pdf'])->name('a2.export.pdf');
             });

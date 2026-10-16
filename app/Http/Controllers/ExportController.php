@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Assessment;
 use App\Support\A2Export;
 use App\Support\ApprovedExport;
+use App\Support\AverageExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
@@ -67,6 +68,107 @@ class ExportController extends Controller
         ]);
     }
 
+    /* ------------------------------------------------------------------ Rekap rata-rata (multi periode) */
+
+    /**
+     * Recap over a range of periods: per employee the final score of every month, the number of approved months,
+     * the average (sum ÷ months that have a score) and its letter with the scale of the last period. A1 or A2 (?type=).
+     */
+    public function averageXlsx(Request $request): StreamedResponse
+    {
+        set_time_limit(300);
+
+        $export = AverageExport::fromRequest($request);
+        $rows   = $export->rows();
+        $a2     = $export->filters['type'] === 'a2';
+
+        $book  = new Spreadsheet();
+        $book->getProperties()->setCreator('PT Indosafety Sentosa')->setTitle($export->title());
+        $sheet = $book->getActiveSheet()->setTitle('Rekap');
+
+        $sheet->setCellValue('A1', $export->title() . ' (Approved)');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        $sheet->setCellValue('A2', 'PT Indosafety Sentosa · ' . $export->description() . ' · ' . $rows->count() . ($a2 ? ' orang' : ' karyawan') . ' · dicetak ' . now()->format('d M Y H:i'));
+        $sheet->setCellValue('A3', 'Rata-rata = jumlah nilai akhir ÷ jumlah bulan yang ada nilainya (hanya penilaian Disetujui). Huruf memakai skala ' . ApprovedExport::labelFor($export->filters['to']) . '. Departemen / seksi / unit = data saat ini.');
+        $sheet->getStyle('A3')->getFont()->setItalic(true)->getColor()->setRGB('475569');
+
+        $head = ['No', 'NIK', 'Nama', 'Grade · Jabatan', ...($a2 ? ['Unit'] : ['Departemen', 'Seksi'])];
+        $fixed = count($head);
+        foreach ($export->periods as $p) {
+            $head[] = AverageExport::monthLabel($p);
+        }
+        $head = [...$head, 'Jumlah bulan', 'Total nilai', 'Rata-rata', 'Nilai Akhir'];
+        $last = Coordinate::stringFromColumnIndex(count($head));
+        $sheet->fromArray($head, null, 'A5');
+        $this->styleHeader($sheet, "A5:{$last}5");
+
+        $r = 6;
+        foreach ($rows as $row) {
+            $values = [$row['no'], $row['nik'], $row['name'], $row['position'], ...($a2 ? [$row['unit']] : [$row['department'], $row['section']])];
+            foreach ($row['scores'] as $score) {
+                $values[] = $score;
+            }
+            $this->putRow($sheet, "A{$r}", [...$values, $row['months'], $row['sum'], $row['average'], $row['grade']]);
+            $this->paintFinal($sheet, "{$last}{$r}", $row['grade']);
+            $r++;
+        }
+        if ($rows->isNotEmpty()) {
+            $sheet->getStyle("A6:{$last}" . ($r - 1))->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('CBD5E1');
+            $firstScore = Coordinate::stringFromColumnIndex($fixed + 1);
+            $avgCol     = Coordinate::stringFromColumnIndex(count($head) - 1);
+            $sheet->getStyle("{$firstScore}6:{$avgCol}" . ($r - 1))->getNumberFormat()->setFormatCode('0.0');
+            $sheet->getStyle("{$firstScore}6:{$last}" . ($r - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        }
+
+        // letters of the averages + the scale used
+        $r += 1;
+        $sheet->setCellValue("A{$r}", 'Jumlah per Nilai Akhir (rata-rata)')->getStyle("A{$r}")->getFont()->setBold(true);
+        foreach (AverageExport::gradeCounts($rows) as $letter => $n) {
+            $r++;
+            $sheet->fromArray([$letter, $n], null, "A{$r}", true);
+            $this->paintFinal($sheet, "A{$r}", $letter);
+        }
+        $r += 2;
+        $sheet->setCellValue("A{$r}", Assessment::HEADINGS['scale'][0] . ' ' . Assessment::HEADINGS['scale'][1] . ' · skala ' . ApprovedExport::labelFor($export->filters['to']))->getStyle("A{$r}")->getFont()->setBold(true);
+        foreach (array_reverse(Assessment::finalGradeRanges($export->filters['to']), true) as $letter => [$min, $max]) {
+            $r++;
+            $sheet->fromArray(["{$letter}級 ({$min}~{$max})", "Nilai {$letter} ({$min}~{$max})"], null, "A{$r}");
+        }
+
+        $widths = [6, 13, 30, 22, ...($a2 ? [26] : [20, 22])];
+        foreach (array_values($widths) as $i => $w) {
+            $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($i + 1))->setWidth($w);
+        }
+        for ($i = $fixed + 1; $i <= count($head); $i++) {
+            $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($i))->setWidth($i > $fixed + count($export->periods) ? 12 : 9);
+        }
+        $sheet->freezePane(Coordinate::stringFromColumnIndex($fixed + 1) . '6');
+        $sheet->setAutoFilter("A5:{$last}5");
+        $sheet->getPageSetup()->setOrientation(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_LANDSCAPE)->setFitToWidth(1)->setFitToHeight(0);
+
+        return response()->streamDownload(function () use ($book) {
+            (new Xlsx($book))->save('php://output');
+        }, $export->filename('xlsx'), ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']);
+    }
+
+    public function averagePdf(Request $request): Response
+    {
+        set_time_limit(300);
+        ini_set('memory_limit', '512M');
+
+        $export = AverageExport::fromRequest($request);
+        $rows   = $export->rows();
+
+        $mpdf = $this->mpdf();
+        $mpdf->SetTitle($export->title() . ' · ' . $export->description());
+        $this->pdfChrome($mpdf, $export->title(), $export->description());
+        $mpdf->WriteHTML(view('exports.average-pdf', ['export' => $export, 'rows' => $rows, 'counts' => AverageExport::gradeCounts($rows)])->render());
+
+        return response($mpdf->Output('', 'S'), 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $export->filename('pdf') . '"',
+        ]);
+    }
     /* ------------------------------------------------------------------ Assessment 2 */
 
     public function a2Xlsx(Request $request): StreamedResponse

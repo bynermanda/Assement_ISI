@@ -48,6 +48,8 @@
         </div>
     </form>
 
+    @include('exports.partials.average-form', ['type' => 'a2'])
+
     <p class="text-sm text-slate-500">
         Untuk mengubah kriteria, bobot, target, Penilai atau Approver: <a href="{{ route('criteria.a2') }}" class="font-semibold text-teal-700 hover:underline">Panduan › Assessment 2</a>.
     </p>
