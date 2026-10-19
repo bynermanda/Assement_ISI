@@ -6,6 +6,7 @@ use App\Models\A2Assessment;
 use App\Models\A2Participant;
 use App\Models\A2Unit;
 use App\Models\Assessment;
+use App\Models\Employee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -20,7 +21,11 @@ use Illuminate\Support\Collection;
  */
 final class AverageExport
 {
-    public const MAX_MONTHS = 60;
+    /** Longest range per format, checked in AverageExportRequest (24 months in a PDF = already ~25 narrow columns). */
+    public const MAX_PDF_MONTHS  = 24;
+    public const MAX_XLSX_MONTHS = 60;
+    /** Safety stop for the month loop only: the request needs the true length to report it. */
+    private const LOOP_GUARD = 600;
 
     /** @param array{type:string, from:string, to:string, department:string, section:string, unit:?int} $filters */
     private function __construct(public readonly array $filters, public readonly array $periods) {}
@@ -44,7 +49,7 @@ final class AverageExport
         }
 
         $periods = [];
-        for ($d = Carbon::createFromFormat('!Y-m', $from); $d->format('Y-m') <= $to && count($periods) < self::MAX_MONTHS; $d->addMonthNoOverflow()) {
+        for ($d = Carbon::createFromFormat('!Y-m', $from); $d->format('Y-m') <= $to && count($periods) < self::LOOP_GUARD; $d->addMonthNoOverflow()) {
             $periods[] = $d->format('Y-m');
         }
 
@@ -62,24 +67,39 @@ final class AverageExport
     public function rows(): Collection
     {
         $a2 = $this->filters['type'] === 'a2';
-        $assessments = ($a2 ? A2Assessment::with(['employee', 'unit']) : Assessment::with('employee'))
+
+        // Stream the approved scores as plain rows (no model per assessment: 24 months x 650 people = ~15k rows)
+        // and keep only employee => [period => score]; employees and units are then loaded once, columns trimmed.
+        $scores = []; $lastUnit = [];
+        $query  = ($a2 ? A2Assessment::query() : Assessment::query())->toBase()
             ->where('status', Assessment::STATUS_APPROVED)
             ->whereIn('period', $this->periods)
-            ->get(['id', 'employee_id', 'period', 'final_score'] + ($a2 ? [4 => 'unit_id'] : []));
+            ->orderBy('id')
+            ->select(array_merge(['employee_id', 'period', 'final_score'], $a2 ? ['unit_id'] : []));
+        foreach ($query->cursor() as $a) {
+            $scores[$a->employee_id][$a->period] = (float) $a->final_score;
+            if ($a2) $lastUnit[$a->employee_id] = $a->unit_id;
+        }
+        unset($query);
 
+        $ids       = array_map('strval', array_keys($scores));
+        $employees = collect();
+        foreach (array_chunk($ids, 1000) as $chunk) {
+            $employees = $employees->union(Employee::query()->whereIn('id_employee', $chunk)
+                ->get(['id_employee', 'name', 'position', 'grade', 'department', 'section'])->keyBy('id_employee'));
+        }
         // current unit of each Assessment 2 participant (falls back to the unit of the assessment)
-        $units = $a2 ? A2Participant::with('unit')->whereIn('employee_id', $assessments->pluck('employee_id')->unique())->get()->keyBy('employee_id') : collect();
-        $key   = fn (?string $v) => mb_strtolower(trim((string) $v));
+        $units    = $a2 ? A2Participant::with('unit:id,name')->whereIn('employee_id', $ids)->get(['employee_id', 'unit_id'])->keyBy('employee_id') : collect();
+        $unitById = $a2 ? A2Unit::whereIn('id', array_unique($lastUnit))->get(['id', 'name'])->keyBy('id') : collect();
+        $key      = fn (?string $v) => mb_strtolower(trim((string) $v));
 
-        return $assessments->groupBy('employee_id')
-            ->map(function (Collection $list, string $id) use ($a2, $units) {
-                $e      = $list->first()->employee;
-                $unit   = $a2 ? ($units->get($id)?->unit ?? $list->first()->unit) : null;
-                $scores = array_fill_keys($this->periods, null);
-                foreach ($list as $a) {
-                    $scores[$a->period] = (float) $a->final_score;
-                }
-                $filled  = array_filter($scores, fn ($s) => $s !== null);
+        return collect($scores)
+            ->map(function (array $months, $id) use ($a2, $units, $unitById, $lastUnit, $employees) {
+                $id     = (string) $id;
+                $e      = $employees->get($id);
+                $unit   = $a2 ? ($units->get($id)?->unit ?? $unitById->get($lastUnit[$id] ?? 0)) : null;
+                $scores = array_replace(array_fill_keys($this->periods, null), $months);
+                $filled  = $months;
                 $average = round(array_sum($filled) / count($filled), 2);
 
                 return [

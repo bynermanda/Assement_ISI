@@ -13,6 +13,11 @@
         <p class="text-base font-bold text-slate-900">Rekap rata-rata {{ $type === 'a2' ? 'Assessment 2' : 'Assessment 1' }} (beberapa periode)</p>
         <p class="text-sm text-slate-600">Rata-rata = jumlah nilai akhir ÷ jumlah bulan yang ada nilainya · hanya Disetujui · huruf memakai skala periode terakhir</p>
     </div>
+    <p class="mt-1 text-sm text-slate-600">Rentang maksimal: PDF {{ \App\Support\AverageExport::MAX_PDF_MONTHS }} bulan, Excel {{ \App\Support\AverageExport::MAX_XLSX_MONTHS }} bulan (termasuk "Semua periode").</p>
+    @php $rangeError = collect(['range', 'from', 'to', 'type', 'unit', 'department', 'section'])->map(fn ($k) => $errors->first($k))->filter()->first(); @endphp
+    @if ($rangeError)
+        <p class="mt-3 rounded border border-rose-300 bg-rose-50 px-3 py-2 text-sm font-bold text-rose-800" role="alert">{{ $rangeError }}</p>
+    @endif
     <div class="mt-4 flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end">
         <label class="text-sm font-bold text-slate-900">Dari periode
             <input type="month" name="from" value="{{ $from }}" :disabled="all" class="mt-1 block rounded border border-slate-300 bg-white px-3 py-2 text-base disabled:bg-slate-100">

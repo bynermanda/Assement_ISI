@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AverageExportRequest;
 use App\Models\Assessment;
 use App\Support\A2Export;
 use App\Support\ApprovedExport;
 use App\Support\AverageExport;
+use App\Support\PdfWriter;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
@@ -24,6 +27,12 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class ExportController extends Controller
 {
     private const FINAL_FILL = ['A' => '059669', 'B' => '0284C7', 'C' => 'FBBF24', 'D' => 'E11D48'];
+
+    /**
+     * mPDF keeps the whole document in memory: ~0.22 MB per table row (measured), so 1,500 rows ≈ 400 MB of the
+     * 512 MB limit. One period (≤ ~700 employees) always fits; "Semua periode" over many months goes to Excel instead.
+     */
+    public const MAX_PDF_ROWS = 1500;
 
     public function xlsx(Request $request): StreamedResponse
     {
@@ -52,15 +61,19 @@ class ExportController extends Controller
 
         $export = ApprovedExport::fromRequest($request);
         $rows   = $export->rows();
+        if ($rows->count() > self::MAX_PDF_ROWS) {
+            return $this->tooManyRows($rows->count());
+        }
 
         $mpdf = $this->mpdf();
         $mpdf->SetTitle('Hasil Penilaian Karyawan · ' . $export->pdfDescription());
         $this->pdfChrome($mpdf, 'Hasil Penilaian Karyawan (Assessment 1)', $export->pdfDescription());
-        $mpdf->WriteHTML(view('exports.pdf', [
+        PdfWriter::write($mpdf, view('exports.pdf', [
             'export' => $export,
             'rows'   => $rows,
             'counts' => ApprovedExport::finalCounts($rows),
         ])->render());
+        unset($rows);
 
         return response($mpdf->Output('', 'S'), 200, [
             'Content-Type'        => 'application/pdf',
@@ -74,11 +87,11 @@ class ExportController extends Controller
      * Recap over a range of periods: per employee the final score of every month, the number of approved months,
      * the average (sum ÷ months that have a score) and its letter with the scale of the last period. A1 or A2 (?type=).
      */
-    public function averageXlsx(Request $request): StreamedResponse
+    public function averageXlsx(AverageExportRequest $request): StreamedResponse
     {
         set_time_limit(300);
 
-        $export = AverageExport::fromRequest($request);
+        $export = $request->export();
         $rows   = $export->rows();
         $a2     = $export->filters['type'] === 'a2';
 
@@ -151,18 +164,27 @@ class ExportController extends Controller
         }, $export->filename('xlsx'), ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']);
     }
 
-    public function averagePdf(Request $request): Response
+    /**
+     * Same recap as PDF. The range is already validated (max AverageExport::MAX_PDF_MONTHS months, see
+     * AverageExportRequest); the scores are streamed (AverageExport::rows) and the HTML goes to mPDF in chunks
+     * (PdfWriter), so a long range no longer hits pcre.backtrack_limit.
+     */
+    public function averagePdf(AverageExportRequest $request): Response
     {
         set_time_limit(300);
         ini_set('memory_limit', '512M');
 
-        $export = AverageExport::fromRequest($request);
+        $export = $request->export();
         $rows   = $export->rows();
 
         $mpdf = $this->mpdf();
         $mpdf->SetTitle($export->title() . ' · ' . $export->description());
         $this->pdfChrome($mpdf, $export->title(), $export->description());
-        $mpdf->WriteHTML(view('exports.average-pdf', ['export' => $export, 'rows' => $rows, 'counts' => AverageExport::gradeCounts($rows)])->render());
+        $html = view('exports.average-pdf', ['export' => $export, 'rows' => $rows, 'counts' => AverageExport::gradeCounts($rows)])->render();
+        unset($rows);
+        PdfWriter::write($mpdf, $html);
+        unset($html);
+        gc_collect_cycles();
 
         return response($mpdf->Output('', 'S'), 200, [
             'Content-Type'        => 'application/pdf',
@@ -204,11 +226,15 @@ class ExportController extends Controller
 
         $export = A2Export::fromRequest($request);
         $groups = $export->groups();
+        if (($count = $groups->sum(fn ($g) => count($g['rows']))) > self::MAX_PDF_ROWS) {
+            return $this->tooManyRows($count);
+        }
 
         $mpdf = $this->mpdf();
         $mpdf->SetTitle('Hasil Assessment 2 · ' . $export->pdfDescription());
         $this->pdfChrome($mpdf, 'Hasil Penilaian Pimpinan (Assessment 2)', $export->pdfDescription());
-        $mpdf->WriteHTML(view('exports.a2-pdf', ['export' => $export, 'groups' => $groups, 'counts' => A2Export::finalCounts($groups)])->render());
+        PdfWriter::write($mpdf, view('exports.a2-pdf', ['export' => $export, 'groups' => $groups, 'counts' => A2Export::finalCounts($groups)])->render());
+        unset($groups);
 
         return response($mpdf->Output('', 'S'), 200, [
             'Content-Type'        => 'application/pdf',
@@ -380,6 +406,13 @@ class ExportController extends Controller
                 'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => self::FINAL_FILL[$letter]]],
             ]);
         }
+    }
+
+    /** Back to the export page with the reason instead of a 500 (memory) halfway through a huge PDF. */
+    private function tooManyRows(int $count): RedirectResponse
+    {
+        return back()->with('error', sprintf('PDF terlalu besar: %s baris (maksimal %s). Pilih satu periode atau filter departemen / unit, atau pakai Excel.',
+            number_format($count, 0, ',', '.'), number_format(self::MAX_PDF_ROWS, 0, ',', '.')));
     }
 
     /** A4 landscape; autoScriptToLang / autoLangToFont give the Chinese headings a CJK font (Sun-ExtA). */
