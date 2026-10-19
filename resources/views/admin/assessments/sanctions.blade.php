@@ -210,9 +210,11 @@
 @endsection
 
 @push('scripts')
+{{-- data as a JSON block (not inline in the script): @json escapes < > & ' " so it cannot close the tag --}}
+<script type="application/json" id="sanction-employees">@json($employees)</script>
 <script>
     // employees of the database, by normalised NIK (same rule as ReviewRules::normalizeNik): no dots, no leading zeros
-    window.sanctionEmployees = @json($employees);
+    window.sanctionEmployees = JSON.parse(document.getElementById('sanction-employees').textContent);
 
     function sanctionImport(config) {
         const LIBS = {

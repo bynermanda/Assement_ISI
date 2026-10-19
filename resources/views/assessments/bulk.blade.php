@@ -317,11 +317,12 @@
 @endsection
 
 @push('scripts')
+<script type="application/json" id="bulk-status-badges">@json(collect(Assessment::STATUSES)->mapWithKeys(fn ($s) => [$s => Assessment::badgeClass($s)]))</script>
 <script>
     function bulkGrid(config) {
         const columns = Object.keys(config.criteria);
         const letters = Object.fromEntries(Object.entries(config.grades).map(([l, p]) => [String(p), l]));
-        const badges  = @js(collect(Assessment::STATUSES)->mapWithKeys(fn ($s) => [$s => Assessment::badgeClass($s)]));
+        const badges  = JSON.parse(document.getElementById('bulk-status-badges').textContent);
         const store   = {
             get(key) { try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { return null; } },
             set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {} },

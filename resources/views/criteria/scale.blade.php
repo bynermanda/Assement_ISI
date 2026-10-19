@@ -173,12 +173,13 @@
 @endsection
 
 @push('scripts')
+<script type="application/json" id="scale-period-labels">@json(collect($periods))</script>
 <script>
     function gradeScale(config) {
         const num = (v, d) => (v === null || v === undefined || v === '' ? d : Number(v));
         const from = config.old.from || config.current;
         const base = config.scaleByPeriod[from] || config.scaleByPeriod[config.current];
-        const labels = @js(collect($periods));
+        const labels = JSON.parse(document.getElementById('scale-period-labels').textContent);
         return {
             current: config.current, scaleByPeriod: config.scaleByPeriod, defaults: config.defaults, scores: config.scores, from,
             form: { a: num(config.old.a, base.A), b: num(config.old.b, base.B), c: num(config.old.c, base.C) },
