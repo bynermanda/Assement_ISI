@@ -109,7 +109,8 @@
                 <p class="text-sm text-slate-500">{{ $selected->department }}@if ($selected->section) / {{ $selected->section }}@endif &middot; {{ $selected->position }} &middot; {{ $selected->grade }}</p>
                 @if ($lockedColumns !== [])
                     <p class="mt-2 rounded border border-teal-200 bg-teal-50 px-3 py-2 text-xs text-teal-800">
-                        {{ tb('Kehadiran dan keterlambatan diisi oleh HRD dan tidak bisa diubah. Silakan nilai kriteria lainnya.') }}
+                        @if (array_intersect($lockedColumns, \App\Models\Assessment::HRD_COLUMNS))<span class="block">{{ tb('Kehadiran dan keterlambatan diisi oleh HRD dan tidak bisa diubah. Silakan nilai kriteria lainnya.') }}</span>@endif
+                        @if (array_intersect($lockedColumns, \App\Models\Assessment::SANCTION_COLUMNS))<span class="block font-bold text-rose-800">{{ tb('Poin 6 Kepatuhan Keselamatan diisi dari data Sanksi HRD dan tidak bisa diubah.') }}</span>@endif
                     </p>
                 @endif
             </div>

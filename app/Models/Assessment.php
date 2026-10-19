@@ -27,6 +27,9 @@ class Assessment extends Model
     /** Criteria that HRD provides (imported); the department cannot change them afterwards. */
     public const HRD_COLUMNS = ['score_attendance', 'score_tardiness'];
 
+    /** Criterion filled in (and locked) by an HRD sanction import (HrdSanction). */
+    public const SANCTION_COLUMNS = ['score_safety'];
+
     /** Grade letter => raw score. */
     public const GRADES = ['A' => 100, 'B' => 80, 'C' => 60, 'D' => 0];
 
@@ -182,6 +185,8 @@ class Assessment extends Model
         'approved_by',
         'hrd_imported_at',
         'hrd_imported_by',
+        'sanction_locked_at',
+        'sanction_locked_by',
         'edited_by',
         'edited_at',
         'notes',
@@ -193,6 +198,7 @@ class Assessment extends Model
             'notes'           => 'array',
             'final_score'     => 'float',
             'hrd_imported_at' => 'datetime',
+            'sanction_locked_at' => 'datetime',
             'edited_at'       => 'datetime',
         ];
     }
@@ -250,6 +256,36 @@ class Assessment extends Model
     public function hrdLocked(): bool
     {
         return $this->hrd_imported_at !== null;
+    }
+
+    /** True when Point 6 comes from an HRD sanction (HrdSanction). */
+    public function sanctionLocked(): bool
+    {
+        return $this->sanction_locked_at !== null;
+    }
+
+    /** Criteria the Penilai / approver may not change: Point 1 & 2 (attendance import), Point 6 (sanction). */
+    public function lockedColumns(): array
+    {
+        return [...($this->hrdLocked() ? self::HRD_COLUMNS : []), ...($this->sanctionLocked() ? self::SANCTION_COLUMNS : [])];
+    }
+
+    /** Notes posted by a form, with the notes of the locked criteria put back as HRD wrote them. */
+    public static function keepLockedNotes(?array $notes, ?self $current): ?array
+    {
+        if (! $current) {
+            return $notes;
+        }
+        $notes ??= [];
+        foreach ($current->lockedColumns() as $column) {
+            if (isset($current->notes[$column]) && $current->notes[$column] !== '') {
+                $notes[$column] = $current->notes[$column];
+            } else {
+                unset($notes[$column]);
+            }
+        }
+
+        return $notes === [] ? null : $notes;
     }
 
     /** True while at least one criterion has not been scored yet (e.g. an HRD draft). */

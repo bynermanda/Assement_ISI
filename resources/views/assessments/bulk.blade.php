@@ -146,7 +146,7 @@
                                                 @foreach ($grades as $letter => $points)<option value="{{ $points }}">{{ $letter }}</option>@endforeach
                                             </select>
                                         @else
-                                            <span class="inline-block w-16 py-1 font-semibold" @if (in_array($column, $row['locked'], true)) title="Dari HRD" @endif>{{ Assessment::letterFor($row['scores'][$column]) }}</span>
+                                            <span class="inline-block w-16 py-1 font-semibold" @if (in_array($column, $row['locked'], true)) title="{{ in_array($column, Assessment::SANCTION_COLUMNS, true) ? 'Sanksi HRD' : 'Dari HRD' }}" @endif>{{ Assessment::letterFor($row['scores'][$column]) }}</span>
                                         @endif
                                     </td>
                                 @endforeach

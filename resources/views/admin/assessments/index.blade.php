@@ -34,6 +34,7 @@
     </form>
     <div class="flex flex-col gap-2 sm:flex-row">
         <a href="{{ route('admin.assessments.import') }}" class="rounded bg-teal-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-teal-700">Impor kehadiran (HRD)</a>
+        <a href="{{ route('admin.assessments.sanctions') }}" class="rounded border border-slate-300 bg-white px-4 py-2 text-center text-sm font-semibold text-slate-900">Impor sanksi (HRD) · Poin 6</a>
         <a href="{{ route('admin.assessments.create') }}" class="rounded border border-slate-300 bg-white px-4 py-2 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50">Tambah manual</a>
     </div>
 </div>

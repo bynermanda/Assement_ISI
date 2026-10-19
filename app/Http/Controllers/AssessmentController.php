@@ -109,7 +109,7 @@ class AssessmentController extends Controller
             'selected'      => $selected,
             'existing'      => $existing,
             'initial'       => $initial,
-            'lockedColumns' => $existing?->hrdLocked() ? Assessment::HRD_COLUMNS : [],
+            'lockedColumns' => $existing?->lockedColumns() ?? [],
             'weights'       => collect(Assessment::CRITERIA)->map(fn ($m) => $m['weight'])->all(),
             'descriptions'  => Assessment::guidelinesFor($selected?->department, $selected?->section),
             'groups'        => ReviewRules::userGroups($user),
@@ -123,11 +123,11 @@ class AssessmentController extends Controller
 
         $allowed = ReviewRules::employeesFor($user, ReviewRules::STAGE_ASSESS)->pluck('id_employee')->all();
 
-        // Attendance and tardiness loaded by HRD are locked: ignore whatever the form posts for them.
+        // Criteria loaded by HRD (attendance import: Point 1 & 2, sanction import: Point 6) are locked: ignore what the form posts.
         $existing = Assessment::where('employee_id', (string) $request->input('id_employee'))
             ->where('period', $period)
             ->first();
-        $locked = $existing?->hrdLocked() ? Assessment::HRD_COLUMNS : [];
+        $locked = $existing?->lockedColumns() ?? [];
 
         $rules = [
             'id_employee' => ['required', Rule::in($allowed)],
@@ -161,7 +161,7 @@ class AssessmentController extends Controller
         Assessment::updateOrCreate(
             ['employee_id' => $validated['id_employee'], 'period' => $period],
             $scores + [
-                'notes'          => Assessment::cleanNotes($validated['notes'] ?? null),
+                'notes'          => Assessment::keepLockedNotes(Assessment::cleanNotes($validated['notes'] ?? null), $existing),
                 'created_by'     => $user->username,
                 'final_score'    => Assessment::calculateFinalScore($scores),
                 'status'         => $status,
@@ -211,7 +211,7 @@ class AssessmentController extends Controller
         return view('assessments.approval-edit', [
             'assessment'    => $assessment,
             'employee'      => $assessment->employee,
-            'lockedColumns' => $assessment->hrdLocked() ? Assessment::HRD_COLUMNS : [],
+            'lockedColumns' => $assessment->lockedColumns(),
             'descriptions'  => Assessment::guidelinesFor($assessment->employee->department, $assessment->employee->section),
         ]);
     }
@@ -223,7 +223,7 @@ class AssessmentController extends Controller
             return $blocked;
         }
 
-        $locked = $assessment->hrdLocked() ? Assessment::HRD_COLUMNS : [];
+        $locked = $assessment->lockedColumns();
 
         $rules = ['action' => ['required', Rule::in(['save', 'approve'])], ...Assessment::noteRules()];
         foreach (array_keys(Assessment::CRITERIA) as $column) {
@@ -242,7 +242,7 @@ class AssessmentController extends Controller
             $changed = $changed || $scores[$column] !== (int) $assessment->{$column};
         }
 
-        $notes   = Assessment::cleanNotes($validated['notes'] ?? null);
+        $notes   = Assessment::keepLockedNotes(Assessment::cleanNotes($validated['notes'] ?? null), $assessment);
         $changed = $changed || $notes != $assessment->notes;
         $changes = $scores + ['final_score' => Assessment::calculateFinalScore($scores), 'notes' => $notes];
 

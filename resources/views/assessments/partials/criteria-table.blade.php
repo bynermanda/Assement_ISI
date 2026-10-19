@@ -52,10 +52,17 @@
                         @if (in_array($column, $lockedColumns, true))
                             {{-- Provided by HRD: shown, not editable --}}
                             <p class="font-semibold text-slate-900" x-text="({'100':'A','80':'B','60':'C','0':'D'})[String(scores['{{ $column }}'])] ?? '-'"></p>
+                            @if (in_array($column, Assessment::SANCTION_COLUMNS, true))
+                                <p class="mt-0.5 inline-flex items-center gap-1 rounded bg-rose-50 px-1.5 py-0.5 text-xs font-bold text-rose-800 ring-1 ring-inset ring-rose-300">
+                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 10-8 0v4m-1 0h10a1 1 0 011 1v7a1 1 0 01-1 1H7a1 1 0 01-1-1v-7a1 1 0 011-1z"/></svg>
+                                    {{ t('Sanksi HRD') }}
+                                </p>
+                            @else
                             <p class="mt-0.5 flex items-center gap-1 text-xs text-teal-700">
                                 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 10-8 0v4m-1 0h10a1 1 0 011 1v7a1 1 0 01-1 1H7a1 1 0 01-1-1v-7a1 1 0 011-1z"/></svg>
                                 {{ t('Dari HRD') }}
                             </p>
+                            @endif
                         @else
                             <select name="{{ $column }}" x-model="scores['{{ $column }}']" required aria-label="{{ t('Nilai') }}: {{ Assessment::itemText($column) }}"
                                     @class([
@@ -75,12 +82,17 @@
                     </td>
                     <td class="px-4 py-4 text-right font-semibold tabular-nums" x-text="contribution('{{ $column }}').toFixed(1)">0.0</td>
                     <td class="px-4 py-3">
+                        @if (in_array($column, $lockedColumns, true) && in_array($column, Assessment::SANCTION_COLUMNS, true))
+                            {{-- written by the HRD sanction import: "[No. Surat] - [Kasus]", not editable (kept by the server) --}}
+                            <p class="whitespace-pre-line rounded border border-slate-200 bg-slate-50 px-2 py-1.5 text-sm text-slate-800">{{ $notes[$column] ?? '' }}</p>
+                        @else
                         <textarea name="notes[{{ $column }}]" rows="2" maxlength="{{ Assessment::NOTE_MAX }}" aria-label="{{ t('Catatan') }}: {{ Assessment::itemText($column) }}"
                                   placeholder="{{ t('Opsional') }}"
                                   class="block w-full resize-y rounded border border-slate-300 px-2 py-1.5 text-sm focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/30">{{ $notes[$column] ?? '' }}</textarea>
                         @error("notes.{$column}")
                             <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
                         @enderror
+                        @endif
                     </td>
                 </tr>
             @endforeach

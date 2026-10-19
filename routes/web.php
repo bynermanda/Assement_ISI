@@ -5,6 +5,7 @@ use App\Http\Controllers\AdminAssessmentController;
 use App\Http\Controllers\Assessment2Controller;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AssessmentImportController;
+use App\Http\Controllers\SanctionImportController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BulkAssessmentController;
 use App\Http\Controllers\CriteriaDescriptionController;
@@ -96,6 +97,10 @@ Route::middleware(['auth', 'throttle:writes'])->group(function () {
                 // HRD attendance import: parsed + previewed in the browser, saved here as JSON in one batch
                 Route::get('/import', [AssessmentImportController::class, 'create'])->name('import');
                 Route::post('/import', [AssessmentImportController::class, 'store'])->middleware('throttle:bulk')->name('import.store');
+                // HRD sanction list -> Point 6 (Kepatuhan Keselamatan) C / D, locked; same hybrid flow
+                Route::get('/sanctions', [SanctionImportController::class, 'create'])->name('sanctions');
+                Route::post('/sanctions', [SanctionImportController::class, 'store'])->middleware('throttle:bulk')->name('sanctions.store');
+                Route::delete('/sanctions/{sanction}', [SanctionImportController::class, 'destroy'])->name('sanctions.destroy');
                 Route::get('/create', [AdminAssessmentController::class, 'create'])->name('create');
                 Route::post('/', [AdminAssessmentController::class, 'store'])->name('store');
                 Route::get('/{assessment}/edit', [AdminAssessmentController::class, 'edit'])->name('edit');

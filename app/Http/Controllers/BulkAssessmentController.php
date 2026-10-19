@@ -58,7 +58,7 @@ class BulkAssessmentController extends Controller
                 'status'   => $a?->status,
                 'editable' => ! $a || in_array($a->status, Assessment::EDITABLE_STATUSES, true),
                 'revision' => $a?->status === Assessment::STATUS_REJECTED ? $a->rejection_note : null,
-                'locked'   => $a?->hrdLocked() ? Assessment::HRD_COLUMNS : [],
+                'locked'   => $a?->lockedColumns() ?? [],
                 'scores'   => collect($columns)->mapWithKeys(fn ($c) => [$c => $a?->{$c} === null ? '' : (string) $a->{$c}])->all(),
                 'note'     => (string) ($a?->notes[Assessment::NOTE_GENERAL] ?? ''),
                 // per-criterion notes written in the manual form: shown as a hint, kept on save
@@ -133,7 +133,7 @@ class BulkAssessmentController extends Controller
                 continue;
             }
 
-            $locked = $current?->hrdLocked() ? Assessment::HRD_COLUMNS : [];
+            $locked = $current?->lockedColumns() ?? [];
             $scores = [];
 
             foreach ($columns as $column) {
