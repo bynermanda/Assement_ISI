@@ -1,5 +1,5 @@
 {{--
-    等計分數 Perhitungan Nilai: legend of the final grades, plus window.finalGrade() for Alpine
+    分數計算 Perhitungan Nilai: legend of the final grades, plus window.finalGrade() for Alpine
     (same thresholds as Assessment::finalGradeFor()). Include once per page; the script is pushed once.
     $scalePeriod (optional, "YYYY-MM"): the period whose scale applies; default the current period.
 --}}

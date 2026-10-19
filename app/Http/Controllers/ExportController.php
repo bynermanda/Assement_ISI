@@ -560,7 +560,7 @@ class ExportController extends Controller
             ->setRowsToRepeatAtTopByStartAndEnd(4, 6);
     }
 
-    /** Sheet 2: final grades per department, and the 等計分數 Perhitungan Nilai scale. */
+    /** Sheet 2: final grades per department, and the 分數計算 Perhitungan Nilai scale. */
     private function fillSummarySheet(Worksheet $sheet, ApprovedExport $export, Collection $rows): void
     {
         $sheet->setTitle('Ringkasan');

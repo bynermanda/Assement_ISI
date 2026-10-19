@@ -43,7 +43,7 @@ class Assessment extends Model
         'score_work_quality' => ['label' => 'Work Quality',           'short' => 'Quality',    'sub' => 'Kualitas Kerja · 工作品質',       'zh' => '工作品質', 'id' => 'Kualitas Kerja',        'group' => null,         'weight' => 30, 'description' => 'desc3'],
         'score_efficiency'   => ['label' => 'Work Efficiency',        'short' => 'Efficiency', 'sub' => 'Efisiensi Kerja · 工作效率',      'zh' => '工作效率', 'id' => 'Efisiensi Kerja',       'group' => null,         'weight' => 20, 'description' => 'desc4'],
         'score_attitude'     => ['label' => 'Work Attitude',          'short' => 'Attitude',   'sub' => 'Sikap Kerja · 工作態度',          'zh' => '工作態度', 'id' => 'Sikap Kerja',           'group' => null,         'weight' => 20, 'description' => 'desc5'],
-        'score_safety'       => ['label' => 'Safety Compliance',      'short' => 'Safety',     'sub' => 'Kepatuhan Keselamatan',           'zh' => '',         'id' => 'Kepatuhan Keselamatan', 'group' => null,         'weight' => 20, 'description' => 'desc6'],
+        'score_safety'       => ['label' => 'Safety Compliance',      'short' => 'Safety',     'sub' => 'Kepatuhan Keselamatan · 安全紀律',  'zh' => '安全紀律', 'id' => 'Kepatuhan Keselamatan', 'group' => null,         'weight' => 20, 'description' => 'desc6'],
     ];
 
     /** Criteria shown under one parent item in the tables ("1 and 2" = one attendance item). */
@@ -84,11 +84,11 @@ class Assessment extends Model
         'target'   => ['目標', 'Target'],
         'points'   => ['得分', 'Nilai'],
         'notes'    => ['備註&評價特別說明', 'Catatan & Evaluasi Catatan Khusus'],
-        'scale'    => ['等計分數', 'Perhitungan Nilai'],
+        'scale'    => ['分數計算', 'Perhitungan Nilai'],
     ];
 
     /**
-     * 等計分數 Perhitungan Nilai: final score -> final grade. Letter => lowest score of that grade, highest first.
+     * 分數計算 Perhitungan Nilai: final score -> final grade. Letter => lowest score of that grade, highest first.
      * The scale used BEFORE the first saved version (A 91~100, B 80~90, C 60~79, D 0~59). The admin adds versions in
      * Panduan › Skala Nilai Akhir, each valid from a period on, so always read finalGrades($period).
      */
