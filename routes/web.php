@@ -7,6 +7,7 @@ use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AssessmentImportController;
 use App\Http\Controllers\SanctionImportController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\BulkAssessmentController;
 use App\Http\Controllers\CriteriaDescriptionController;
 use App\Http\Controllers\EmployeeController;
@@ -80,6 +81,10 @@ Route::middleware(['auth', 'throttle:writes'])->group(function () {
                 Route::put('/scale', [GradeScaleController::class, 'update'])->name('scale.update');
                 Route::delete('/scale/{from}', [GradeScaleController::class, 'destroy'])->where('from', '\d{4}-\d{2}')->name('scale.destroy');
             });
+
+            // Whole database as one .sql file (structure + data), restorable in the Supabase SQL Editor
+            Route::get('admin/backup', [BackupController::class, 'index'])->name('backup.index');
+            Route::post('admin/backup', [BackupController::class, 'download'])->middleware('throttle:exports')->name('backup.download');
 
             // Export of APPROVED assessments only; the buttons sit on the Assessments page (A1) and the Assessment 2 page (A2)
             Route::middleware('throttle:exports')->group(function () {

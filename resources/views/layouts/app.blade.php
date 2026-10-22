@@ -33,7 +33,8 @@
                             ['Pengguna', 'users.*', route('users.index')],
                             ['Penilaian', 'admin.assessments.*', route('admin.assessments.index')],
                             ['Assessment 2', 'a2.admin', route('a2.admin')],
-                            ['Panduan', 'criteria.*', route('criteria.index')]],
+                            ['Panduan', 'criteria.*', route('criteria.index')],
+                            ['Backup', 'backup.*', route('backup.index')]],
         Roles::REVIEWER, Roles::ASSESSOR => array_values(array_filter([
                             ['Tugas Saya', 'dashboard', route('dashboard')],   // everything to do, in one page
                             in_array(1, $stages, true) && ReviewRules::usesBulk($authUser) ? ['Assessment Massal', 'assessments.bulk', route('assessments.bulk')] : null,
