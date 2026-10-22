@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Impor sanksi')
-@section('heading', 'Impor Sanksi (HRD) · Poin 6')
+@section('heading', 'Impor Sanksi (HRD)')
 @section('subheading', 'Unggah daftar sanksi HRD. Surat sanksi pada bulan yang dipilih mengisi Poin 6 安全紀律 Kepatuhan Keselamatan: 1 sanksi = C, 2 sanksi atau lebih dalam bulan yang sama = D. Catatan Poin 6 otomatis "[No. Surat] - [Kasus]". Setelah disimpan, Poin 6 terkunci untuk Penilai dan Approver (badge "Sanksi HRD"); status tetap Draf.')
 
 @section('content')
@@ -90,12 +90,12 @@
                             <tr>
                                 <th class="px-3 py-2 text-center">No</th>
                                 <th class="px-3 py-2">NIK</th>
-                                <th class="min-w-[13rem] px-3 py-2">Nama</th>
+                                <th class="min-w-52 px-3 py-2">Nama</th>
                                 <th class="px-3 py-2">Tanggal</th>
                                 <th class="px-3 py-2">No. Surat · Jenis</th>
                                 <th class="min-w-[22rem] px-3 py-2">Kasus untuk catatan Poin 6<span class="block font-normal">boleh diringkas · maks. 450 karakter</span></th>
                                 <th class="px-3 py-2 text-center">Poin 6</th>
-                                <th class="min-w-[12rem] px-3 py-2">Keterangan</th>
+                                <th class="min-w-48 px-3 py-2">Keterangan</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -199,7 +199,7 @@
 
     {{-- 4. save bar --}}
     <div x-show="rows.length" x-cloak class="fixed inset-x-0 bottom-0 z-40 border-t border-hairline bg-white shadow-sticky">
-        <div class="flex min-h-[64px] w-full flex-col gap-2 px-6 py-3 sm:flex-row sm:items-center sm:justify-between md:px-10">
+        <div class="flex min-h-16 w-full flex-col gap-2 px-6 py-3 sm:flex-row sm:items-center sm:justify-between md:px-10">
             <p class="text-base text-slate-700"><span class="font-bold text-slate-900" x-text="counts.ok"></span> surat sanksi
                 (<span x-text="employeesOk"></span> karyawan) akan disimpan untuk periode <span class="font-bold" x-text="period"></span> · Poin 6 terkunci</p>
             <button type="button" @click="save()" :disabled="saving || counts.ok === 0"

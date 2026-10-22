@@ -84,13 +84,13 @@
                             <tr>
                                 <th class="px-3 py-2 text-center">No</th>
                                 <th class="px-3 py-2">NIK</th>
-                                <th class="min-w-[14rem] px-3 py-2">Nama</th>
+                                <th class="min-w-56 px-3 py-2">Nama</th>
                                 <th class="px-3 py-2 text-right">Ijin<span class="block font-normal">hari</span></th>
                                 <th class="px-3 py-2 text-right">Sakit<span class="block font-normal">hari</span></th>
                                 <th class="px-3 py-2 text-right">Terlambat<span class="block font-normal">kali</span></th>
                                 <th class="px-3 py-2 text-center">Poin 1<span class="block font-normal">Tingkat Kehadiran</span></th>
                                 <th class="px-3 py-2 text-center">Poin 2<span class="block font-normal">Berada di area kerja</span></th>
-                                <th class="min-w-[14rem] px-3 py-2">Keterangan</th>
+                                <th class="min-w-56 px-3 py-2">Keterangan</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -140,7 +140,7 @@
 
     {{-- 3. save bar --}}
     <div x-show="rows.length" x-cloak class="fixed inset-x-0 bottom-0 z-40 border-t border-hairline bg-white shadow-sticky">
-        <div class="flex min-h-[64px] w-full flex-col gap-2 px-6 py-3 sm:flex-row sm:items-center sm:justify-between md:px-10">
+        <div class="flex min-h-16 w-full flex-col gap-2 px-6 py-3 sm:flex-row sm:items-center sm:justify-between md:px-10">
             <p class="text-base text-slate-700"><span class="font-bold text-slate-900" x-text="counts.ok"></span> karyawan akan disimpan (Draf, nilai kehadiran terkunci) untuk periode <span class="font-bold" x-text="period"></span>
                 <span x-show="changed" class="ml-2 text-slate-600">· <span x-text="changed"></span> nilai diubah manual</span></p>
             <button type="button" @click="save()" :disabled="saving || counts.ok === 0"
