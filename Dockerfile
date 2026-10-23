@@ -1,6 +1,7 @@
-# Laravel 12 on PHP 8.2 + Apache, for Render.com (Docker runtime).
+# Laravel 12 on PHP 8.3 + Apache, for Render.com (Docker runtime).
 # Secrets (APP_KEY, DB_*, DEFAULT_ACCOUNT_PASSWORD) are NOT in the image: set them as environment variables on Render.
-FROM php:8.2-apache
+# Exact patch version on purpose: 8.3.36 fixes PHP2Shell (CVE-2026-109618 / CVE-2026-109619); never go below it.
+FROM php:8.3.36-apache
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libpq-dev libzip-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev libicu-dev unzip \
