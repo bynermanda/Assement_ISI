@@ -2,7 +2,7 @@
 
 @section('title', $isEdit ? 'Edit Panduan' : 'Panduan Baru')
 @section('heading', $isEdit ? 'Edit Panduan' : 'Panduan Baru')
-@section('subheading', 'Teks yang tampil di samping setiap kriteria pada form penilaian. Baris baru tetap dipertahankan.')
+@section('subheading', 'Target yang tampil di samping setiap kriteria.')
 
 @section('content')
 <form method="POST" action="{{ $isEdit ? route('criteria.update', $row->id_desc) : route('criteria.store') }}" class="space-y-6">
@@ -13,7 +13,7 @@
 
     @if ($copied)
         <div class="rounded border border-sky-300 bg-sky-50 px-4 py-3 text-sm text-sky-900">
-            Teks disalin dari panduan yang sudah ada. Pilih departemen dan seksi, lalu sesuaikan teksnya.
+            Disalin dari panduan lain. Pilih departemen / seksi, lalu sesuaikan.
         </div>
     @endif
 

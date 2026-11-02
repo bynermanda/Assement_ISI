@@ -4,7 +4,7 @@
 
 @section('title', 'Approval A2')
 @section('heading', tb('Approval Assessment 2'))
-@section('subheading', t('Centang penilaian yang Anda setujui lalu klik Approve; langsung tersimpan. Buka satu penilaian untuk melihat semua kriteria, atau kembalikan dengan catatan.'))
+@section('subheading', t('Centang lalu klik Approve; langsung tersimpan. Buka satu penilaian untuk detail atau mengembalikannya.'))
 
 @section('content')
 @php

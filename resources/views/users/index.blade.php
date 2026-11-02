@@ -5,7 +5,7 @@
 
 @section('title', 'Pengguna')
 @section('heading', 'Manajemen Pengguna')
-@section('subheading', 'Akun departemen (A1): satu Penilai 1 (menilai) dan satu Penilai 2 (menyetujui) per departemen. Akun pribadi (A2): satu akun per orang yang menilai / menyetujui pimpinan. Admin untuk HRD.')
+@section('subheading', 'Akun departemen (A1): Penilai 1 menilai, Penilai 2 menyetujui. Akun pribadi (A2): menilai / menyetujui pimpinan. Admin: HRD.')
 
 @section('content')
 @php
@@ -67,7 +67,7 @@
         <div class="mb-6 rounded-lg border border-rose-300 bg-rose-50 px-4 py-3 text-sm">
             <p class="font-semibold text-rose-900">Assessment 2 belum lengkap</p>
             @if ($a2Missing->isNotEmpty())
-                <p class="mt-2 text-rose-900">Peserta tanpa Penilai atau Approver: buka Edit pada akun yang seharusnya memegang, lalu centang namanya.</p>
+                <p class="mt-2 text-rose-900">Peserta tanpa Penilai / Approver (atur lewat Edit akun pemegangnya):</p>
                 <ul class="mt-1 list-inside list-disc text-rose-800">
                     @foreach ($a2Missing as $p)
                         <li>{{ $p->employee?->name }} <span class="text-rose-600">({{ $p->unit?->name }})</span> –
@@ -76,10 +76,9 @@
                 </ul>
             @endif
             @if ($a2Unassigned->isNotEmpty())
-                <p class="mt-2 text-amber-900">Masuk Assessment 2 (halaman Karyawan) tetapi belum dinilai siapa pun:
+                <p class="mt-2 text-amber-900">Assessment 2 tanpa penilai:
                     <span class="font-medium">{{ $a2Unassigned->map(fn ($e) => $e->name . ' (' . $e->department . ')')->implode(', ') }}</span>.
-                    Tambahkan beserta Penilai dan Approver di <a href="{{ route('criteria.a2') }}" class="font-semibold underline">Panduan › Assessment 2</a>,
-                    atau kembalikan ke Assessment 1 / Otomatis di halaman Karyawan jika mereka hanya penilai.</p>
+                    Tambahkan di <a href="{{ route('criteria.a2') }}" class="font-semibold underline">Panduan › Assessment 2</a> atau kembalikan ke Assessment 1 di halaman Karyawan.</p>
             @endif
         </div>
     @else
@@ -124,8 +123,7 @@
             </table>
         </div>
         <p class="border-t border-slate-100 px-4 py-2 text-xs text-slate-500">
-            Angka 0 merah = seksi ini punya karyawan tetapi belum ada akun untuk langkah tersebut. Karyawan grade 6 ke atas tidak termasuk Assessment 1.
-            Agar satu orang memegang beberapa seksi, edit akunnya dan centang seksi lain.
+            0 merah = seksi belum punya akun untuk langkah itu. Grade 6 ke atas masuk Assessment 2. Satu akun bisa memegang beberapa seksi (Edit › centang seksi).
         </p>
     </details>
 
@@ -136,10 +134,10 @@
             @csrf
             <p class="text-sm text-slate-900">
                 @if ($missingCount > 0)
-                    <span class="font-semibold">{{ $missingCount }}</span> akun bawaan belum ada: satu Penilai 1 dan satu Penilai 2 per departemen, mencakup semua seksinya
+                    <span class="font-semibold">{{ $missingCount }}</span> akun departemen belum dibuat (Penilai 1 dan Penilai 2 per departemen)
                     (login seperti <code class="rounded bg-white px-1">qa.penilai1</code>, <code class="rounded bg-white px-1">press.penilai2</code>).
                 @endif
-                Nama pemegang akun bisa diisi nanti lewat Edit.
+                Nama pemegang bisa diisi nanti.
             </p>
             <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
                 <div>
@@ -325,13 +323,12 @@
     <div x-show="mergeOpen" x-cloak class="fixed inset-0 z-50 flex items-end justify-center sm:items-center" role="dialog" aria-modal="true" @keydown.escape.window="mergeOpen = false">
         <div class="absolute inset-0 bg-slate-900/60" @click="mergeOpen = false"></div>
         <form method="POST" action="{{ route('users.merge') }}" class="relative w-full rounded-t-lg bg-white shadow-xl sm:max-w-lg sm:rounded-lg"
-              onsubmit="return confirm('Gabungkan akun ini? Akun pertama dihapus; tugas dan riwayatnya pindah ke akun kedua.')">
+              onsubmit="return confirm('Gabungkan? Akun pertama dihapus; tugas dan riwayatnya pindah.')">
             @csrf
             <div class="space-y-4 px-5 py-4">
                 <div>
                     <h2 class="text-lg font-semibold text-slate-900">Gabungkan akun</h2>
-                    <p class="mt-1 text-sm text-slate-500">Untuk satu orang yang punya dua login, misalnya akun Penilai 2 departemen (Assessment 1) dan akun pribadi Assessment 2.
-                        Seksi dan langkah Penilai digabung, tugas Assessment 2 dan riwayat ikut pindah. Ditolak jika seseorang jadi menilai dirinya sendiri.</p>
+                    <p class="mt-1 text-sm text-slate-500">Untuk satu orang dengan dua login. Seksi, tugas A2 dan riwayat pindah ke akun yang dipertahankan.</p>
                 </div>
                 <div>
                     <label for="merge_source" class="block text-sm font-medium text-slate-700">Akun yang dihapus</label>
@@ -349,7 +346,7 @@
                 </div>
                 <label class="flex items-start gap-2 text-sm text-slate-700">
                     <input type="checkbox" name="allow_self" value="1" class="mt-0.5 rounded border-slate-300 text-teal-600 focus:ring-teal-600">
-                    <span>Izinkan menilai diri sendiri di Assessment 2 (kepala departemen menilai dirinya; GM / Direktur tetap menyetujui). Menyetujui diri sendiri tidak pernah diizinkan.</span>
+                    <span>Izinkan menilai diri sendiri di A2 (menyetujui diri sendiri tetap dilarang).</span>
                 </label>
             </div>
             <div class="flex justify-end gap-2 border-t border-slate-200 bg-slate-50 px-5 py-3">
@@ -389,7 +386,7 @@
                         <input id="f_username" name="username" x-model="f.username" type="text" maxlength="50" :required="mode === 'edit'" class="mt-1 w-full rounded border border-slate-300 px-3 py-2 font-mono text-sm">
                     </div>
                     <p class="-mt-2 text-xs text-slate-500 sm:col-span-2" x-show="mode === 'create'">Huruf kecil, angka, titik, strip. Contoh: qa1.penilai1 atau a2.nama.orang</p>
-                    <p class="-mt-2 text-xs text-amber-700 sm:col-span-2" x-show="mode === 'edit'">Mengubah username berarti mengubah login; riwayat penilaian ikut pindah. Beri tahu orangnya.</p>
+                    <p class="-mt-2 text-xs text-amber-700 sm:col-span-2" x-show="mode === 'edit'">Username = login. Beri tahu pemiliknya bila diubah.</p>
                     <template x-if="f.role !== 'admin'">
                         <div class="contents">
                             <div>
@@ -426,7 +423,7 @@
                                 </label>
                             @endforeach
                         </div>
-                        <p class="mt-1 text-xs text-slate-700">Pimpinan seksi di departemen Assessment Massal otomatis dinilai Penilai 2 dan disetujui atasannya (lihat Panduan › Assessment 1).</p>
+                        <p class="mt-1 text-xs text-slate-700">Pimpinan seksi berjalur khusus diatur di Panduan › Jalur Khusus A1.</p>
                     </fieldset>
                 </template>
 
@@ -436,8 +433,7 @@
                         <input type="hidden" name="a2_present" value="1">
                         <legend class="rounded bg-tile-1 px-2 py-0.5 text-sm font-semibold text-white">Tugas Assessment 2 · pimpinan</legend>
                         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                            <p class="text-xs text-slate-700">Centang siapa yang dinilai (Penilai) atau disetujui (Approver) akun ini. Mencentang berarti mengambil alih dari akun sebelumnya.
-                                Untuk melepas seseorang, berikan ke akun lain (Penilai / Approver tidak boleh kosong).</p>
+                            <p class="text-xs text-slate-700">Centang = ambil alih sebagai Penilai / Approver. Untuk melepas, berikan ke akun lain.</p>
                             <input type="search" x-model.debounce.150ms="a2q" placeholder="Cari" class="rounded border border-slate-200 px-2 py-1 text-xs sm:w-36" aria-label="Cari peserta">
                         </div>
                         <div class="mt-2 max-h-64 overflow-y-auto rounded border border-slate-200 bg-white">

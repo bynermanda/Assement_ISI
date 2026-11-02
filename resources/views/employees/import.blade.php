@@ -87,12 +87,11 @@
         <form method="POST" action="{{ route('employees.import.store') }}" enctype="multipart/form-data" class="rounded-lg border border-slate-200 bg-white p-5">
             @csrf
             <h2 class="font-semibold text-slate-900">Unggah file karyawan</h2>
-            <p class="mt-1 text-sm text-slate-600">Bisa memilih beberapa file sekaligus (misalnya daftar utama dan daftar outsourcing).</p>
+            <p class="mt-1 text-sm text-slate-600">Bisa beberapa file sekaligus.</p>
 
             @unless ($excelSupported)
                 <div class="mt-4 rounded border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-                    File Excel (.xls / .xlsx) belum bisa dibaca. Jalankan <code class="font-mono">composer require phpoffice/phpspreadsheet</code> sekali,
-                    atau unggah sebagai <strong>.csv</strong> untuk sementara.
+                    File Excel belum bisa dibaca di server ini. Unggah sebagai <strong>.csv</strong> atau hubungi pengelola teknis.
                 </div>
             @endunless
 
@@ -113,7 +112,7 @@
                 <span>
                     <span class="font-medium">Perbarui juga karyawan yang sudah ada</span>
                     <span class="block text-xs text-slate-500">
-                        Mengisi Seksi dan memperbarui nama, departemen, grade dan jabatan. Sel kosong tidak pernah menghapus data yang ada.
+                        Memperbarui seksi, nama, departemen, grade dan jabatan. Sel kosong tidak menghapus data.
                     </span>
                 </span>
             </label>
@@ -146,8 +145,7 @@
             </table>
 
             <p class="mt-3 text-xs text-slate-500">
-                NIK dicocokkan tanpa titik dan nol di depan, jadi <span class="font-mono">01.151002</span> di file dikenali sebagai
-                <span class="font-mono">1.151.002</span> di database dan tidak ditambahkan dua kali.
+                NIK dicocokkan tanpa titik dan nol di depan (<span class="font-mono">01.151002</span> = <span class="font-mono">1.151.002</span>).
             </p>
         </div>
     </div>
@@ -177,7 +175,7 @@
                     </table>
                 </div>
                 <p class="mt-3 text-xs text-slate-500">
-                    Selama belum ada, form penilaian menampilkan "target belum diisi". Baris dengan Seksi kosong berlaku untuk seluruh departemen.
+                    Tanpa panduan, form menampilkan "target belum diisi".
                 </p>
             @endif
         </div>

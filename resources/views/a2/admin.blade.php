@@ -28,7 +28,7 @@
           class="flex flex-col gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 lg:flex-row lg:items-end lg:justify-between">
         <div>
             <p class="text-sm font-semibold text-emerald-900">Export Assessment 2 · hanya yang Disetujui</p>
-            <p class="text-xs text-emerald-800">Excel: satu sheet ringkasan ditambah satu sheet per unit dengan kriterianya. PDF: sama, satu halaman per unit.</p>
+            <p class="text-xs text-emerald-800">Excel dan PDF: ringkasan + satu bagian per unit.</p>
         </div>
         <div class="flex flex-col gap-2 sm:flex-row sm:items-end">
             <label class="text-xs text-emerald-900">Periode
@@ -51,7 +51,7 @@
     @include('exports.partials.average-form', ['type' => 'a2'])
 
     <p class="text-sm text-slate-500">
-        Untuk mengubah kriteria, bobot, target, Penilai atau Approver: <a href="{{ route('criteria.a2') }}" class="font-semibold text-teal-700 hover:underline">Panduan › Assessment 2</a>.
+        Ubah kriteria atau penilai di <a href="{{ route('criteria.a2') }}" class="font-semibold text-teal-700 hover:underline">Panduan › Assessment 2</a>.
     </p>
 
     @foreach ($units as $unit)

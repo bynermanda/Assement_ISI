@@ -5,7 +5,7 @@
 
 @section('title', 'Panduan · Skala Nilai Akhir')
 @section('heading', 'Panduan Penilaian')
-@section('subheading', 'Skala Nilai Akhir: batas nilai untuk huruf A, B, C dan D, untuk semua karyawan dan departemen (Assessment 1 dan 2). Perubahan berlaku mulai periode yang dipilih; periode sebelumnya tetap memakai skala lamanya selamanya.')
+@section('subheading', 'Batas huruf A–D untuk semua karyawan (A1 & A2). Berlaku mulai periode terpilih; periode lalu tetap memakai skala lama.')
 
 @section('content')
 @include('criteria.partials.tabs', ['active' => 'scale'])
@@ -103,7 +103,7 @@
             </template>
             <template x-if="from === current">
                 <div>
-                    <p class="mt-1 text-base text-slate-600"><span x-text="scores.length"></span> penilaian bulan ini (Assessment 1 + 2, selain draf). Bulan-bulan sebelumnya tidak berubah.</p>
+                    <p class="mt-1 text-base text-slate-600"><span x-text="scores.length"></span> penilaian bulan ini (A1 + A2, selain draf). Bulan lalu tidak berubah.</p>
                     <table class="table-lines mt-4 w-full text-base" x-show="scores.length">
                         <thead class="bg-slate-50 text-left"><tr><th class="px-3 py-2">Nilai</th><th class="px-3 py-2 text-right">Skala sekarang</th><th class="px-3 py-2 text-right">Skala baru</th><th class="px-3 py-2 text-right">Selisih</th></tr></thead>
                         <tbody>
@@ -127,7 +127,7 @@
 <div class="mt-6 overflow-hidden rounded-lg border border-slate-200 bg-white">
     <div class="border-b border-slate-200 px-6 py-4">
         <h2 class="text-xl font-bold text-slate-900">Riwayat skala</h2>
-        <p class="text-base text-slate-600">Setiap penilaian memakai skala yang berlaku untuk periodenya. Skala periode yang sudah lewat terkunci.</p>
+        <p class="text-base text-slate-600">Tiap penilaian memakai skala periodenya. Skala periode lalu terkunci.</p>
     </div>
     <table class="table-lines min-w-full text-base">
         <thead class="bg-slate-50 text-left">

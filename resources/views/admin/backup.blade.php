@@ -2,7 +2,7 @@
 
 @section('title', 'Backup Database')
 @section('heading', 'Backup Database')
-@section('subheading', 'Unduh salinan lengkap database aplikasi (data karyawan, akun, penilaian, sanksi, Assessment 2 dan pengaturan) dalam satu file. Lakukan minimal sebulan sekali, misalnya setelah penilaian bulan berjalan di-approve, dan simpan filenya di folder perusahaan.')
+@section('subheading', 'Unduh seluruh database dalam satu file. Lakukan minimal sebulan sekali dan simpan di folder perusahaan.')
 
 @section('content')
 @php
@@ -57,7 +57,7 @@
                             </tr>
                         @endforeach
                         <tr class="border-t border-slate-200">
-                            <td class="px-6 py-3 text-slate-600" colspan="2">Ditambah struktur {{ count($tables) }} tabel. Data sementara sistem (sesi login, antrean) tidak disimpan.</td>
+                            <td class="px-6 py-3 text-slate-600" colspan="2">Termasuk struktur {{ count($tables) }} tabel (tanpa sesi login).</td>
                         </tr>
                     </tbody>
                 </table>
@@ -70,15 +70,15 @@
         <div class="rounded-lg border border-slate-200 bg-white p-6">
             <h2 class="text-xl font-bold text-slate-900">Menyimpan file backup</h2>
             <ul class="mt-3 list-disc space-y-2 pl-5 text-base text-slate-700">
-                <li>Simpan di folder perusahaan yang aksesnya terbatas (Google Drive / OneDrive / NAS kantor).</li>
-                <li>File berisi <b>data pribadi karyawan</b>: jangan kirim lewat chat atau email pribadi, jangan unggah ke GitHub.</li>
-                <li>Simpan minimal 12 file terakhir (satu per bulan); hapus yang lebih lama.</li>
+                <li>Simpan di folder perusahaan berakses terbatas.</li>
+                <li>Berisi <b>data pribadi karyawan</b>: jangan kirim lewat chat atau email pribadi.</li>
+                <li>Simpan 12 file terakhir (satu per bulan).</li>
             </ul>
         </div>
 
         <div class="rounded-lg border border-slate-200 bg-white p-6">
             <h2 class="text-xl font-bold text-slate-900">Memulihkan dari backup</h2>
-            <p class="mt-2 text-base text-slate-700">Hanya bila data rusak atau terhapus. <b>Semua data aplikasi saat ini diganti</b> dengan isi file backup.</p>
+            <p class="mt-2 text-base text-slate-700">Hanya bila data rusak. <b>Semua data saat ini diganti</b> isi backup.</p>
             <ol class="mt-3 list-decimal space-y-2 pl-5 text-base text-slate-700">
                 <li>Buka file backup dengan Notepad, tekan <b>Ctrl+A</b> lalu <b>Ctrl+C</b>.</li>
                 <li>Login ke <b>supabase.com</b>, buka proyek database aplikasi.</li>
@@ -86,7 +86,7 @@
                 <li>Tempel (<b>Ctrl+V</b>) lalu klik <b>Run</b>. Tunggu sampai muncul <i>Success</i>.</li>
                 <li>Buka aplikasi dan periksa datanya.</li>
             </ol>
-            <p class="mt-3 text-sm text-slate-600">Bila muncul pesan error, tidak ada data yang berubah. Kirim pesan error tersebut ke pengelola teknis.</p>
+            <p class="mt-3 text-sm text-slate-600">Jika muncul error, data tidak berubah. Kirim pesannya ke pengelola teknis.</p>
         </div>
     </div>
 </div>

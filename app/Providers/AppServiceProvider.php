@@ -57,8 +57,8 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('writes', fn (Request $request) => $request->isMethodSafe()
             ? Limit::none()
             : Limit::perMinute(60)->by($who($request))->response(fn (Request $request, array $headers) => $request->expectsJson()
-                ? response()->json(['message' => t('Terlalu banyak aksi dalam waktu singkat. Tunggu satu menit lalu coba lagi.')], 429, $headers)
-                : back()->with('error', t('Terlalu banyak aksi dalam waktu singkat. Tunggu satu menit lalu coba lagi.'))));
+                ? response()->json(['message' => t('Terlalu banyak aksi. Coba lagi dalam satu menit.')], 429, $headers)
+                : back()->with('error', t('Terlalu banyak aksi. Coba lagi dalam satu menit.'))));
         // Assessment Massal: one request saves a whole section
         RateLimiter::for('bulk', fn (Request $request) => Limit::perMinute(10)->by($who($request)));
         // Excel / PDF exports are heavy (PDF ~2 s of CPU)

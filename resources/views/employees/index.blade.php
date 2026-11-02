@@ -2,7 +2,7 @@
 
 @section('title', 'Karyawan')
 @section('heading', 'Data Karyawan')
-@section('subheading', 'Tambah, edit, dan nonaktifkan karyawan. Penilaian hanya dibuat untuk karyawan aktif.')
+@section('subheading', 'Kelola data karyawan. Hanya karyawan aktif yang dinilai.')
 
 @section('content')
 <div x-data="employeeManager({

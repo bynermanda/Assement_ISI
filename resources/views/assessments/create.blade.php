@@ -14,7 +14,7 @@
 
     @if ($usesBulk)
         <div class="flex flex-col gap-2 rounded border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-900 sm:flex-row sm:items-center sm:justify-between">
-            <span>{{ tb('Departemen Anda punya :n karyawan. Menilai semuanya sekaligus lebih cepat di Assessment Massal.', ['n' => $employees->count()]) }}</span>
+            <span>{{ tb(':n karyawan lebih cepat dinilai sekaligus di Assessment Massal.', ['n' => $employees->count()]) }}</span>
             <a href="{{ route('assessments.bulk') }}" class="font-semibold text-teal-800 hover:underline">{{ t('Buka Assessment Massal') }} →</a>
         </div>
     @endif
@@ -87,7 +87,7 @@
             @endforelse
         </div>
 
-        <p class="mt-2 text-xs text-slate-500">{{ tb('Karyawan yang menunggu persetujuan atau sudah disetujui terkunci. Draf dan penilaian yang dikembalikan bisa diedit.') }}</p>
+        <p class="mt-2 text-xs text-slate-500">{{ tb('Menunggu persetujuan / disetujui = terkunci. Draf dan yang dikembalikan bisa diedit.') }}</p>
 
         @if ($existing?->status === Assessment::STATUS_REJECTED && $existing->rejection_note)
             <div class="mt-4 rounded border border-rose-300 bg-rose-50 p-3 text-sm text-rose-900">
@@ -109,8 +109,8 @@
                 <p class="text-sm text-slate-500">{{ $selected->department }}@if ($selected->section) / {{ $selected->section }}@endif &middot; {{ $selected->position }} &middot; {{ $selected->grade }}</p>
                 @if ($lockedColumns !== [])
                     <p class="mt-2 rounded border border-teal-200 bg-teal-50 px-3 py-2 text-xs text-teal-800">
-                        @if (array_intersect($lockedColumns, \App\Models\Assessment::HRD_COLUMNS))<span class="block">{{ tb('Kehadiran dan keterlambatan diisi oleh HRD dan tidak bisa diubah. Silakan nilai kriteria lainnya.') }}</span>@endif
-                        @if (array_intersect($lockedColumns, \App\Models\Assessment::SANCTION_COLUMNS))<span class="block font-bold text-rose-800">{{ tb('Poin 6 Kepatuhan Keselamatan diisi dari data Sanksi HRD dan tidak bisa diubah.') }}</span>@endif
+                        @if (array_intersect($lockedColumns, \App\Models\Assessment::HRD_COLUMNS))<span class="block">{{ tb('Kehadiran dan keterlambatan diisi HRD (terkunci). Nilai kriteria lainnya.') }}</span>@endif
+                        @if (array_intersect($lockedColumns, \App\Models\Assessment::SANCTION_COLUMNS))<span class="block font-bold text-rose-800">{{ tb('Poin 6 diisi dari Sanksi HRD (terkunci).') }}</span>@endif
                     </p>
                 @endif
             </div>
@@ -124,7 +124,7 @@
                 {{ t('Simpan draf') }}
             </button>
             <button type="submit" name="action" value="submit"
-                    onclick="return confirm(@js(t('Kirim penilaian ini ke Penilai 2? Setelah dikirim tidak bisa diubah kecuali dikembalikan.')))"
+                    onclick="return confirm(@js(t('Kirim ke Penilai 2? Penilaian terkunci kecuali dikembalikan.')))"
                     class="rounded bg-teal-600 px-6 py-3.5 text-base font-semibold text-white focus:outline-none">
                 {{ t('Kirim ke Penilai 2') }}
             </button>

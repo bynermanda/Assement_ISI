@@ -2,7 +2,7 @@
 
 @section('title', 'Panduan')
 @section('heading', 'Panduan Penilaian')
-@section('subheading', 'Assessment 1: teks 目標 Target yang tampil di form, per departemen dan seksi.')
+@section('subheading', 'Assessment 1: target per departemen dan seksi.')
 
 @section('content')
 @include('criteria.partials.tabs', ['active' => 'a1'])
@@ -10,10 +10,10 @@
 @if ($routes->isNotEmpty() || $routeProblems)
     <div class="mb-6 overflow-hidden rounded-lg border border-violet-200 bg-white">
         <div class="border-b border-violet-200 bg-violet-50 px-4 py-2">
-            <p class="text-sm font-semibold text-violet-900">Pimpinan seksi (jalur khusus)</p>
+            <p class="flex items-center justify-between gap-3 text-sm font-semibold text-violet-900">Pimpinan seksi (jalur khusus)
+                <a href="{{ route('criteria.routes') }}" class="rounded border border-violet-300 bg-white px-3 py-1 text-xs font-semibold text-violet-900">Kelola: tambah / keluarkan orang</a></p>
             <p class="text-xs text-violet-800">
-                Orang-orang di daftar ini tidak dinilai oleh akun Penilai 1 / Penilai 2 departemennya, melainkan oleh Penilai dan Approval yang ditetapkan HRD.
-                Kriteria dan target tetap sama. Karyawan lain mengikuti alur biasa departemen.
+                Dinilai akun pilihan HRD, bukan akun departemen. Kriteria dan target tetap sama.
             </p>
         </div>
         @if ($routes->isNotEmpty())
@@ -40,7 +40,7 @@
 @endif
 <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
     <p class="text-sm text-slate-600">
-        Baris <strong>tanpa seksi</strong> berlaku untuk seluruh departemen. Baris <strong>dengan seksi</strong> menggantikannya khusus untuk seksi itu.
+        <strong>Tanpa seksi</strong> = seluruh departemen. <strong>Dengan seksi</strong> = khusus seksi itu.
     </p>
     <a href="{{ route('criteria.create') }}" class="rounded bg-teal-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-teal-700">Tambah panduan</a>
 </div>
@@ -99,7 +99,7 @@
                             <a href="{{ route('criteria.edit', $row->id_desc) }}" class="font-medium text-teal-700 hover:underline">Edit</a>
                             <a href="{{ route('criteria.create', ['copy_from' => $row->id_desc]) }}" class="ml-3 font-medium text-slate-600 hover:underline">Duplikat</a>
                             <form method="POST" action="{{ route('criteria.destroy', $row->id_desc) }}" class="ml-3 inline"
-                                  onsubmit="return confirm('Hapus panduan ini? Penilai di departemen / seksi ini tidak akan melihat target.')">
+                                  onsubmit="return confirm('Hapus panduan ini? Target tidak tampil lagi di form.')">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="font-medium text-rose-700 hover:underline">Hapus</button>

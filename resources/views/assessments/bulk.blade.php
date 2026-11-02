@@ -181,8 +181,7 @@
         <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <p class="text-xs text-slate-500 sm:max-w-md">
                 Nilai per item: @foreach ($grades as $letter => $points){{ $letter }} = {{ $points }}@if (! $loop->last), @endif @endforeach.
-                Nilai Akhir muncul setelah semua item dalam satu baris diberi nilai.
-                Baris yang menunggu persetujuan atau sudah disetujui terkunci. Perubahan disimpan di browser ini sampai Anda menyimpannya.
+                Nilai Akhir muncul setelah semua item terisi. Baris terkirim / disetujui terkunci. Isian tersimpan sementara di browser sampai disimpan.
             </p>
             @include('assessments.partials.final-scale')
         </div>
@@ -215,7 +214,7 @@
             <div class="relative max-h-[90vh] w-full overflow-y-auto rounded-t-lg bg-white shadow-xl sm:max-w-2xl sm:rounded-lg">
                 <div class="border-b border-slate-200 px-5 py-4">
                     <h2 id="review-title" class="text-lg font-semibold text-slate-900">Periksa sebelum mengirim · {{ $unit }}</h2>
-                    <p class="text-sm text-slate-500">Periksa ringkasan, lalu konfirmasi. Baris yang dikirim masuk ke Penilai 2 dan terkunci.</p>
+                    <p class="text-sm text-slate-500">Baris yang dikirim masuk ke Penilai 2 dan terkunci.</p>
                 </div>
 
                 <div class="space-y-5 px-5 py-5">

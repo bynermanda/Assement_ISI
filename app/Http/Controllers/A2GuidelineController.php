@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\A1Route;
+use App\Models\A2Assessment;
 use App\Models\A2Criterion;
 use App\Models\A2Participant;
 use App\Models\A2Unit;
@@ -38,9 +40,13 @@ class A2GuidelineController extends Controller
             'unit'         => $unit,
             'participants' => $participants,
             'accounts'     => User::where('role', '!=', Roles::ADMIN)->orderBy('username')->get(['id', 'username', 'name', 'nik']),
-            // people who can be added: active, in Assessment 2, not a participant yet
+            // people who can be added: active and not a participant yet; Assessment 2 first, Assessment 1 people are moved on add
             'candidates'   => Employee::where('status', 'Active')->orderBy('name')->get()
-                ->filter(fn ($e) => ReviewRules::levelOf($e) === 2 && ! $taken->has($e->id_employee))->values(),
+                ->reject(fn ($e) => $taken->has($e->id_employee))
+                ->groupBy(fn ($e) => ReviewRules::levelOf($e) === 2 ? 'a2' : 'a1'),
+            'departments'  => Employee::where('status', 'Active')->distinct()->orderBy('department')->pluck('department')
+                ->merge($units->pluck('department'))->filter()->unique()->sort(SORT_NATURAL)->values(),
+            'unitStats'    => $unit ? ['assessments' => A2Assessment::where('unit_id', $unit->id)->count()] : null,
         ]);
     }
 
@@ -143,9 +149,119 @@ class A2GuidelineController extends Controller
             return redirect()->route('criteria.a2', ['unit' => $unit->id])->withInput()->with('error', 'Tidak ditambahkan: ' . implode(' ', $problems));
         }
 
-        A2Participant::create($data + ['unit_id' => $unit->id, 'active' => true]);
+        if ($employee->status !== 'Active') {
+            return redirect()->route('criteria.a2', ['unit' => $unit->id])->withInput()->with('error', "Tidak ditambahkan: {$employee->name} tidak aktif.");
+        }
+        $moved = ReviewRules::levelOf($employee) !== 2;
 
-        return redirect()->route('criteria.a2', ['unit' => $unit->id])->with('success', "{$employee->name} ditambahkan ke {$unit->name}.");
+        DB::transaction(function () use ($data, $unit, $employee, $moved) {
+            if ($moved) {   // still Assessment 1: becomes Assessment 2, and leaves any A1 special route
+                $employee->update(['assessment_level' => 2]);
+                A1Route::whereNotNull('employee_id')->get()
+                    ->filter(fn ($r) => ReviewRules::normalizeNik($r->employee_id) === ReviewRules::normalizeNik($employee->id_employee))
+                    ->each->delete();
+            }
+            A2Participant::create($data + ['unit_id' => $unit->id, 'active' => true]);
+        });
+
+        return redirect()->route('criteria.a2', ['unit' => $unit->id])->with('success', "{$employee->name} ditambahkan ke {$unit->name}."
+            . ($moved ? ' Ia dipindah dari Assessment 1 ke Assessment 2 (dan keluar dari jalur khusus A1).' : ''));
+    }
+
+    /**
+     * A new unit = a new assessment form with its own criteria, e.g. "PRESS · Kepala Seksi 1" next to
+     * "PRESS · Kepala Seksi 2" when one department scores its section heads differently. Optionally starts with a copy
+     * of another unit's criteria (then edit them); it is listed right after the other units of its department.
+     */
+    public function storeUnit(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'name'       => ['required', 'string', 'max:100', Rule::unique('a2_units', 'name')],
+            'department' => ['nullable', 'string', 'max:100'],
+            'copy_from'  => ['nullable', 'integer', 'exists:a2_units,id'],
+        ], [
+            'name.required' => 'Isi nama unit penilaian.',
+            'name.unique'   => 'Nama unit ini sudah dipakai.',
+        ], ['name' => 'nama unit', 'department' => 'departemen']);
+
+        $unit = DB::transaction(function () use ($data) {
+            $department = trim((string) ($data['department'] ?? '')) ?: null;
+            // after the last unit of the same department, else at the end; the units behind it move down one place
+            $after = $department ? A2Unit::where('department', $department)->max('sort') : null;
+            $sort  = $after !== null ? $after + 1 : (int) A2Unit::max('sort') + 1;
+            A2Unit::where('sort', '>=', $sort)->increment('sort');
+            $unit = A2Unit::create(['name' => trim($data['name']), 'department' => $department, 'sort' => $sort]);
+
+            if (! empty($data['copy_from'])) {
+                foreach (A2Criterion::where('unit_id', $data['copy_from'])->orderBy('sort')->get() as $c) {
+                    A2Criterion::create(['unit_id' => $unit->id] + $c->only(['sort', 'group_zh', 'group_id', 'name_zh', 'name_id', 'weight', 'target', 'remark']));
+                }
+            }
+
+            return $unit;
+        });
+
+        $copied = $unit->criteria()->count();
+
+        return redirect()->route('criteria.a2', ['unit' => $unit->id])->with('success', "Unit \"{$unit->name}\" dibuat"
+            . ($copied ? " dengan {$copied} kriteria salinan; sesuaikan kriteria dan bobotnya, lalu simpan." : '; tambahkan kriterianya (total bobot 100%), lalu tambahkan peserta.'));
+    }
+
+    /** Rename a unit or change its department (criteria, participants and saved scores stay with it). */
+    public function updateUnit(Request $request, A2Unit $unit): RedirectResponse
+    {
+        $data = $request->validate([
+            'name'       => ['required', 'string', 'max:100', Rule::unique('a2_units', 'name')->ignore($unit->id)],
+            'department' => ['nullable', 'string', 'max:100'],
+        ], ['name.unique' => 'Nama unit ini sudah dipakai.'], ['name' => 'nama unit']);
+
+        $unit->update(['name' => trim($data['name']), 'department' => trim((string) ($data['department'] ?? '')) ?: null]);
+
+        return redirect()->route('criteria.a2', ['unit' => $unit->id])->with('success', "Unit \"{$unit->name}\" disimpan.");
+    }
+
+    /**
+     * Deletes an unused unit (with its criteria). Refused while it still has participants (move them first) or saved
+     * assessments (history must keep its unit).
+     */
+    public function destroyUnit(A2Unit $unit): RedirectResponse
+    {
+        $people = A2Participant::where('unit_id', $unit->id)->count();
+        $scored = A2Assessment::where('unit_id', $unit->id)->count();
+        if ($people || $scored) {
+            return redirect()->route('criteria.a2', ['unit' => $unit->id])->with('error', "Unit \"{$unit->name}\" tidak dihapus: "
+                . collect([$people ? "masih ada {$people} peserta (pindahkan ke unit lain atau hapus dulu)" : null,
+                           $scored ? "sudah punya {$scored} penilaian tersimpan (riwayat tetap memakai unit ini)" : null])->filter()->implode(' dan ') . '.');
+        }
+
+        $name = $unit->name;
+        $unit->delete();   // criteria go with it (cascade)
+
+        return redirect()->route('criteria.a2')->with('success', "Unit \"{$name}\" dihapus.");
+    }
+
+    /**
+     * Removes a participant from Assessment 2 assignments. Saved assessments stay as history. With to_a1 the person
+     * also goes back to Assessment 1 (employees.assessment_level = 1), e.g. a wrong move.
+     */
+    public function destroyParticipant(Request $request, A2Participant $participant): RedirectResponse
+    {
+        $participant->load(['employee', 'unit']);
+        $name   = $participant->employee?->name ?? $participant->employee_id;
+        $unitId = $participant->unit_id;
+        $open   = A2Assessment::where('employee_id', $participant->employee_id)->where('period', now()->format('Y-m'))->first();
+        $toA1   = $request->boolean('to_a1') && $participant->employee;
+
+        DB::transaction(function () use ($participant, $toA1) {
+            $participant->delete();
+            if ($toA1) {
+                $participant->employee->update(['assessment_level' => 1]);
+            }
+        });
+
+        return redirect()->route('criteria.a2', ['unit' => $unitId])->with('success', "{$name} dihapus dari peserta Assessment 2"
+            . ($toA1 ? ' dan kembali ke Assessment 1 (alur departemennya; atur jalur khusus di tab Jalur Khusus A1 bila perlu).' : '.')
+            . ($open ? " Penilaian A2 bulan ini ({$open->status}) tetap tersimpan sebagai riwayat." : ''));
     }
 
     /**

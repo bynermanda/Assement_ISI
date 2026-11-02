@@ -6,7 +6,7 @@
 {{-- Penilai 2: tick and approve (part of the list is fine), or send single assessments back --}}
 @section('title', 'Approval')
 @section('heading', tb('Approval Massal'))
-@section('subheading', t('Centang penilaian yang Anda setujui lalu klik Approve; langsung tersimpan. Sisanya tetap di sini: approve nanti atau kembalikan ke Penilai 1.'))
+@section('subheading', t('Centang lalu klik Approve; langsung tersimpan. Sisanya bisa di-approve nanti atau dikembalikan ke Penilai 1.'))
 
 @section('content')
 @php
@@ -131,7 +131,7 @@
 
         <div class="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <p class="text-xs text-slate-500 sm:max-w-md">
-                {{ tb('Penilaian yang sudah disetujui dikunci dan hilang dari daftar ini. Klik Kembalikan untuk mengirim balik ke Penilai 1 dengan catatan; setelah diperbaiki akan kembali ke sini.') }}
+                {{ tb('Yang disetujui terkunci dan keluar dari daftar. Klik Kembalikan untuk minta perbaikan ke Penilai 1.') }}
             </p>
             @include('assessments.partials.final-scale')
         </div>

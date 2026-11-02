@@ -45,7 +45,7 @@
                         @if ($guideline)
                             {!! Assessment::formatGuideline($guideline) !!}
                         @else
-                            <span class="text-slate-400">{{ t('Target untuk departemen ini belum diisi. Minta HRD menambahkannya di Panduan.') }}</span>
+                            <span class="text-slate-400">{{ t('Target belum diisi. Hubungi HRD.') }}</span>
                         @endif
                     </td>
                     <td class="px-4 py-4">
@@ -100,7 +100,7 @@
                 <td></td>
                 <td colspan="6" class="px-4 py-3 text-sm">
                     <p class="font-medium text-slate-900">{{ tb('Catatan umum') }}</p>
-                    <p class="text-xs text-slate-500">{{ tb('Tentang karyawan secara keseluruhan (sama dengan catatan di Assessment Massal).') }}</p>
+                    <p class="text-xs text-slate-500">{{ tb('Tentang karyawan secara keseluruhan.') }}</p>
                 </td>
                 <td class="px-4 py-3">
                     <textarea name="notes[{{ Assessment::NOTE_GENERAL }}]" rows="2" maxlength="{{ Assessment::NOTE_MAX }}" aria-label="{{ t('Catatan umum') }}"

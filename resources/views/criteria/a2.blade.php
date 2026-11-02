@@ -2,20 +2,20 @@
 
 @section('title', 'Panduan · Assessment 2')
 @section('heading', 'Panduan Penilaian')
-@section('subheading', 'Assessment 2: kriteria, bobot dan target per unit, serta siapa yang menilai dan menyetujui setiap pimpinan.')
+@section('subheading', 'Assessment 2: kriteria, bobot, penilai dan approver per unit.')
 
 @section('content')
 @include('criteria.partials.tabs', ['active' => 'a2'])
 
-<div class="mb-4 rounded border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-    Kriteria dan penugasan diedit di halaman ini. Jangan menjalankan ulang impor workbook lama: perubahan di sini akan tertimpa.
-    Akun berakhiran <code class="rounded bg-white px-1 ring-1 ring-slate-200">.penilai</code> / <code class="rounded bg-white px-1 ring-1 ring-slate-200">.approver</code>
-    adalah akun sementara (nama pemegang belum diisi).
+<div class="mb-4 rounded border border-violet-200 bg-violet-50 px-4 py-3 text-sm text-violet-900">
+    <b>1 unit = 1 form penilaian.</b> Kriteria berbeda dalam satu departemen? Buat unit terpisah, mis. <i>PRESS · Kepala Seksi 1</i> dan <i>PRESS · Kepala Seksi 2</i>.
 </div>
+
+@include('criteria.partials.a2-new-unit')
 
 @if ($units->isEmpty())
     <div class="rounded-lg border border-dashed border-slate-300 bg-white px-6 py-12 text-center text-sm text-slate-500">
-        Belum ada unit Assessment 2.
+        Belum ada unit Assessment 2. Buat unit pertama dengan tombol di atas.
     </div>
 @else
 <div class="grid grid-cols-1 gap-5 lg:grid-cols-[16rem_1fr]">
@@ -26,7 +26,7 @@
             <a href="{{ route('criteria.a2', ['unit' => $u->id]) }}" @if ($u->is($unit)) aria-current="page" @endif
                @class(['flex items-center justify-between gap-2 border-b border-slate-100 px-3 py-2 text-sm last:border-b-0',
                        'bg-teal-50 font-semibold text-teal-900' => $u->is($unit), 'text-slate-700 hover:bg-slate-50' => ! $u->is($unit)])>
-                <span>{{ $u->name }}</span>
+                <span>{{ $u->name }}@if ($u->department && $u->department !== $u->name)<span class="block text-xs font-normal text-slate-500">{{ $u->department }}</span>@endif</span>
                 <span class="flex items-center gap-2 text-xs font-normal">
                     <span @class(['text-emerald-700' => abs($sum - 100) < 0.01, 'font-semibold text-rose-700' => abs($sum - 100) >= 0.01])>{{ rtrim(rtrim(number_format($sum, 2), '0'), '.') }}%</span>
                     <span class="text-slate-400">{{ $u->participants_count }}p</span>
@@ -36,6 +36,8 @@
     </nav>
 
     <div class="space-y-6">
+        @include('criteria.partials.a2-unit-card')
+
         {{-- criteria editor --}}
         @php
             $initial = old('rows', $unit->criteria->map(fn ($c) => [
@@ -50,7 +52,7 @@
             <div class="flex flex-col gap-2 border-b border-slate-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h2 class="font-semibold text-slate-900">Kriteria · {{ $unit->name }}</h2>
-                    <p class="text-xs text-slate-500">Teks grup yang sama pada baris berurutan = satu grup gabungan di form (seperti 出勤表現 Performa Kehadiran).</p>
+                    <p class="text-xs text-slate-500">Grup yang sama pada baris berurutan digabung di form.</p>
                 </div>
                 <p class="text-sm">Total bobot:
                     <span class="font-semibold tabular-nums" :class="Math.abs(total - 100) < 0.01 ? 'text-emerald-700' : 'text-rose-700'" x-text="total.toFixed(2).replace(/\.?0+$/, '') + '%'"></span>
@@ -96,7 +98,7 @@
                 <div class="flex items-center gap-3">
                     <span class="text-xs text-rose-700" x-show="Math.abs(total - 100) >= 0.01">Total bobot harus 100% sebelum disimpan.</span>
                     <button type="submit" :disabled="Math.abs(total - 100) >= 0.01"
-                            onclick="return confirm('Simpan kriteria unit ini? Penilaian baru memakai kriteria ini; yang sudah dikirim tetap memakai kriteria lama.')"
+                            onclick="return confirm('Simpan kriteria? Penilaian yang sudah dikirim tetap memakai kriteria lama.')"
                             class="rounded bg-teal-600 px-5 py-2 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-50">Simpan kriteria</button>
                 </div>
             </div>
@@ -106,7 +108,7 @@
         <div class="overflow-hidden rounded-lg border border-slate-200 bg-white">
             <div class="border-b border-slate-200 px-4 py-3">
                 <h2 class="font-semibold text-slate-900">Peserta & atasan · {{ $unit->name }}</h2>
-                <p class="text-xs text-slate-500">Penilai dan Approver harus akun yang berbeda; tidak ada yang boleh menyetujui dirinya sendiri. Kepala departemen boleh menilai dirinya sendiri.</p>
+                <p class="text-xs text-slate-500">Penilai dan Approver harus berbeda; menyetujui diri sendiri tidak diizinkan.</p>
             </div>
             @if ($participants->isNotEmpty())
                 <form method="POST" action="{{ route('criteria.a2.participants', $unit) }}">
@@ -121,6 +123,7 @@
                                     <th class="px-3 py-2 font-medium">Approver</th>
                                     <th class="px-3 py-2 font-medium">Unit</th>
                                     <th class="px-3 py-2 text-center font-medium">Aktif</th>
+                                    <th class="px-3 py-2 text-right font-medium">Hapus</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
@@ -148,6 +151,14 @@
                                             <input type="hidden" name="participants[{{ $p->id }}][active]" value="0">
                                             <input type="checkbox" name="participants[{{ $p->id }}][active]" value="1" @checked($p->active) class="rounded border-slate-300 text-teal-600" aria-label="Aktif">
                                         </td>
+                                        <td class="px-3 py-2">
+                                            <div class="flex flex-col items-end gap-1">
+                                                <button type="submit" form="del-p{{ $p->id }}" class="whitespace-nowrap rounded border border-rose-300 bg-white px-2 py-1 text-xs font-semibold"
+                                                        onclick="return confirm(@js('Hapus ' . ($p->employee?->name ?? $p->employee_id) . ' dari peserta? Riwayat penilaian tetap tersimpan.'))">Hapus</button>
+                                                <button type="submit" form="del-p{{ $p->id }}-a1" class="whitespace-nowrap rounded border border-slate-300 bg-white px-2 py-1 text-xs font-semibold"
+                                                        onclick="return confirm(@js('Hapus ' . ($p->employee?->name ?? $p->employee_id) . ' dari Assessment 2 dan kembalikan ke Assessment 1?'))">Hapus &amp; ke A1</button>
+                                            </div>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -157,6 +168,10 @@
                         <button type="submit" class="rounded bg-teal-600 px-5 py-2 text-sm font-semibold text-white hover:bg-teal-700">Simpan peserta</button>
                     </div>
                 </form>
+                @foreach ($participants as $p)
+                    <form id="del-p{{ $p->id }}" method="POST" action="{{ route('criteria.a2.participants.destroy', $p) }}" class="hidden">@csrf @method('DELETE')</form>
+                    <form id="del-p{{ $p->id }}-a1" method="POST" action="{{ route('criteria.a2.participants.destroy', $p) }}" class="hidden">@csrf @method('DELETE')<input type="hidden" name="to_a1" value="1"></form>
+                @endforeach
             @else
                 <p class="px-4 py-6 text-sm text-slate-500">Belum ada peserta di unit ini.</p>
             @endif
@@ -164,10 +179,16 @@
             {{-- add --}}
             <form method="POST" action="{{ route('criteria.a2.participants.add', $unit) }}" class="grid grid-cols-1 gap-2 border-t border-slate-200 px-4 py-3 md:grid-cols-4 md:items-end">
                 @csrf
-                <label class="text-xs text-slate-600">Tambah peserta (Assessment 2, belum ditugaskan)
+                <label class="text-xs text-slate-600">Tambah peserta ke {{ $unit->name }}
                     <select name="employee_id" required class="mt-0.5 w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm">
                         <option value="">Pilih</option>
-                        @foreach ($candidates as $e)<option value="{{ $e->id_employee }}" @selected(old('employee_id') === $e->id_employee)>{{ $e->name }} · {{ $e->department }}</option>@endforeach
+                        @foreach (['a2' => 'Assessment 2 (belum ditugaskan)', 'a1' => 'Assessment 1 (akan dipindah ke A2)'] as $level => $label)
+                            @if ($candidates->has($level))
+                                <optgroup label="{{ $label }}">
+                                    @foreach ($candidates[$level] as $e)<option value="{{ $e->id_employee }}" @selected(old('employee_id') === $e->id_employee)>{{ $e->name }} · {{ $e->department }} · {{ $e->position }}</option>@endforeach
+                                </optgroup>
+                            @endif
+                        @endforeach
                     </select>
                 </label>
                 @foreach (['assessor_id' => 'Penilai', 'approver_id' => 'Approver'] as $field => $label)
@@ -179,7 +200,7 @@
                     </label>
                 @endforeach
                 <button type="submit" class="rounded border border-teal-600 bg-white px-4 py-2 text-sm font-semibold text-teal-700 hover:bg-teal-50">Tambah</button>
-                <p class="text-xs text-slate-500 md:col-span-4">Tidak ada di daftar? Pindahkan dulu orangnya ke Assessment 2 di halaman Karyawan.</p>
+                <p class="text-xs text-slate-500 md:col-span-4">Orang Assessment 1 otomatis dipindah ke A2. Pindah unit: ubah kolom Unit di tabel.</p>
             </form>
         </div>
     </div>

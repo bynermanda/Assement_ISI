@@ -2,7 +2,7 @@
 
 @section('title', 'Impor kehadiran')
 @section('heading', 'Impor Kehadiran (HRD)')
-@section('subheading', 'Unggah file absensi HRD. File dibaca dan dihitung di browser, periksa / ubah nilainya di tabel, lalu simpan. Setelah disimpan, nilai Poin 1 dan 2 terkunci (tidak bisa diubah Penilai / Approver); status tetap Draf dan Penilai melengkapi 4 kriteria lain. Koreksi: impor ulang.')
+@section('subheading', 'Unggah absensi HRD, periksa nilainya, lalu simpan. Poin 1 dan 2 terkunci; status tetap Draf. Koreksi: impor ulang.')
 
 @section('content')
 {{--
@@ -31,13 +31,12 @@
                            class="mt-1 block w-full rounded border border-slate-300 bg-white text-base file:mr-3 file:border-0 file:bg-slate-100 file:px-4 file:py-2.5 file:font-bold">
                 </label>
             </div>
-            <p class="mt-3 text-sm text-slate-600">Periode {{ $periodLabel }}. File tidak dikirim ke server: hanya hasil nilai yang disimpan.</p>
+            <p class="mt-3 text-sm text-slate-600">Periode {{ $periodLabel }}. Hanya hasil nilai yang disimpan.</p>
 
             <div x-show="loading" x-cloak class="mt-4 text-base font-bold text-slate-700" role="status">Membaca file…</div>
             <div x-show="error" x-cloak class="mt-4 rounded border border-l-4 border-slate-200 border-l-rose-600 bg-white px-4 py-3 text-base text-slate-900" role="alert">
                 <p class="font-bold" x-text="error"></p>
-                <p class="mt-1 text-sm text-slate-600">Pastikan file adalah ekspor absensi HRD dengan kolom <b>Empl ID</b>, <b>Nama Karyawan</b>, <b>Ijin Pribadi</b>, <b>Sakit</b> dan <b>Terlambat</b>
-                    (boleh dua baris judul seperti "Full / 1/2" dan "Hari / Mnt"). Baris "Department :", "Sub Total" dan "Grand Total" diabaikan otomatis.</p>
+                <p class="mt-1 text-sm text-slate-600">Gunakan ekspor absensi HRD dengan kolom <b>Empl ID</b>, <b>Nama Karyawan</b>, <b>Ijin Pribadi</b>, <b>Sakit</b> dan <b>Terlambat</b>.</p>
             </div>
         </div>
 
@@ -141,7 +140,7 @@
     {{-- 3. save bar --}}
     <div x-show="rows.length" x-cloak class="fixed inset-x-0 bottom-0 z-40 border-t border-hairline bg-white shadow-sticky">
         <div class="flex min-h-16 w-full flex-col gap-2 px-6 py-3 sm:flex-row sm:items-center sm:justify-between md:px-10">
-            <p class="text-base text-slate-700"><span class="font-bold text-slate-900" x-text="counts.ok"></span> karyawan akan disimpan (Draf, nilai kehadiran terkunci) untuk periode <span class="font-bold" x-text="period"></span>
+            <p class="text-base text-slate-700"><span class="font-bold text-slate-900" x-text="counts.ok"></span> karyawan disimpan · periode <span class="font-bold" x-text="period"></span>
                 <span x-show="changed" class="ml-2 text-slate-600">· <span x-text="changed"></span> nilai diubah manual</span></p>
             <button type="button" @click="save()" :disabled="saving || counts.ok === 0"
                     class="rounded bg-teal-600 px-6 py-3 text-base font-bold" x-text="saving ? 'Menyimpan…' : 'Simpan ke Matriks Penilaian'"></button>
@@ -301,7 +300,7 @@
             async save() {
                 const rows = this.rows.filter(r => r.state === 'ok');
                 if (! rows.length) return;
-                if (! confirm(`Simpan ${rows.length} karyawan untuk periode ${this.period}? Nilai Poin 1 dan 2 akan TERKUNCI (Penilai tidak bisa mengubahnya); status tetap Draf. Penilaian yang sudah dikirim / disetujui tidak diubah.`)) return;
+                if (! confirm(`Simpan ${rows.length} karyawan (${this.period})? Poin 1 dan 2 akan terkunci; status tetap Draf.`)) return;
                 this.saving = true; this.result = ''; this.skipped = [];
                 try {
                     const response = await fetch(config.storeUrl, {

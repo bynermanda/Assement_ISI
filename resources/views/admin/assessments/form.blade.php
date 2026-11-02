@@ -4,7 +4,7 @@
 
 @section('title', $isEdit ? 'Edit Penilaian' : 'Penilaian Manual')
 @section('heading', $isEdit ? 'Edit Penilaian' : 'Input Penilaian Manual')
-@section('subheading', 'Input oleh HRD. Status "Disetujui" melewati langkah persetujuan; pilih status lain untuk mengikuti alur biasa.')
+@section('subheading', 'Input HRD. Status "Disetujui" langsung final; status lain mengikuti alur biasa.')
 
 @section('content')
 <form method="POST"

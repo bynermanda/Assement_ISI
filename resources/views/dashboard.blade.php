@@ -32,7 +32,7 @@
         <div>
             <h2 class="font-semibold text-emerald-900">Export penilaian yang disetujui · {{ $periodLabel }}</h2>
             <p class="text-sm text-emerald-800">Hanya penilaian yang disetujui yang diekspor ({{ $approvedNow }} Assessment 1 periode ini).
-                Per departemen / seksi: gunakan tombol export di halaman Penilaian; Assessment 2 di halamannya sendiri.</p>
+                Per departemen: halaman Penilaian. Assessment 2: halamannya sendiri.</p>
         </div>
         <div class="flex flex-col gap-2 sm:flex-row">
             @if ($approvedNow > 0)

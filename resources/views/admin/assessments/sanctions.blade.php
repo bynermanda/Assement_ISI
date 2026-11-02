@@ -2,7 +2,7 @@
 
 @section('title', 'Impor sanksi')
 @section('heading', 'Impor Sanksi (HRD)')
-@section('subheading', 'Unggah daftar sanksi HRD. Surat sanksi pada bulan yang dipilih mengisi Poin 6 安全紀律 Kepatuhan Keselamatan: 1 sanksi = C, 2 sanksi atau lebih dalam bulan yang sama = D. Catatan Poin 6 otomatis "[No. Surat] - [Kasus]". Setelah disimpan, Poin 6 terkunci untuk Penilai dan Approver (badge "Sanksi HRD"); status tetap Draf.')
+@section('subheading', 'Unggah daftar sanksi HRD. Sanksi bulan terpilih mengisi Poin 6: 1 surat = C, 2 atau lebih = D, lalu terkunci. Status tetap Draf.')
 
 @section('content')
 {{--
@@ -38,13 +38,12 @@
                            class="mt-1 block w-full rounded border border-slate-300 bg-white text-base file:mr-3 file:border-0 file:bg-slate-100 file:px-4 file:py-2.5 file:font-bold">
                 </label>
             </div>
-            <p class="mt-3 text-sm text-slate-600">Periode {{ $periodLabel }}: hanya surat dengan <b>tanggal sanksi</b> di bulan ini yang dipakai; bulan lain di file ditampilkan abu-abu dan tidak disimpan. File tidak dikirim ke server.</p>
+            <p class="mt-3 text-sm text-slate-600">Periode {{ $periodLabel }}: hanya surat bertanggal bulan ini yang disimpan.</p>
 
             <div x-show="loading" x-cloak class="mt-4 text-base font-bold text-slate-700" role="status">Membaca file…</div>
             <div x-show="error" x-cloak class="mt-4 rounded border border-l-4 border-slate-200 border-l-rose-600 bg-white px-4 py-3 text-base text-slate-900" role="alert">
                 <p class="font-bold" x-text="error"></p>
-                <p class="mt-1 text-sm text-slate-600">Format yang dibaca: "DATA LIST SANKSI KARYAWAN" dengan kolom <b>NAMA</b>, <b>NIK</b>, <b>BAGIAN</b>, <b>TANGGAL</b>, <b>NO. SURAT</b>,
-                    <b>SP 1</b> / <b>SP 2</b> / <b>SP 3</b> / <b>SP PERTAMA &amp; TERAKHIR</b> dan <b>KASUS</b>. Baris judul bulan ("Februari 2026") dan baris kosong diabaikan.</p>
+                <p class="mt-1 text-sm text-slate-600">Gunakan file "DATA LIST SANKSI KARYAWAN" dengan kolom <b>NAMA</b>, <b>NIK</b>, <b>TANGGAL</b>, <b>NO. SURAT</b>, <b>SP 1–3 / SP PERTAMA &amp; TERAKHIR</b> dan <b>KASUS</b>.</p>
             </div>
         </div>
 
@@ -60,7 +59,7 @@
                     <tr><td class="px-3 py-1.5">tidak ada sanksi</td><td class="px-3 py-1.5">diisi manual oleh Penilai</td></tr>
                 </tbody>
             </table>
-            <p class="mt-3 text-slate-600">Sesuai panduan Poin 6. Surat yang sudah tersimpan ikut dihitung, jadi impor ulang file yang sama tidak menggandakan sanksi.</p>
+            <p class="mt-3 text-slate-600">Sesuai panduan Poin 6. Impor ulang tidak menggandakan sanksi.</p>
         </div>
     </div>
 
@@ -151,7 +150,7 @@
     <div class="overflow-hidden rounded-lg border border-slate-200 bg-white">
         <div class="flex flex-col gap-1 border-b border-slate-200 px-6 py-4 sm:flex-row sm:items-baseline sm:justify-between">
             <p class="text-base font-bold text-slate-900">Sanksi tersimpan · {{ $periodLabel }}</p>
-            <p class="text-sm text-slate-600">{{ $stored->count() }} surat · {{ $stored->pluck('employee_id')->unique()->count() }} karyawan · hapus = Poin 6 dihitung ulang (tanpa surat: terbuka lagi untuk Penilai)</p>
+            <p class="text-sm text-slate-600">{{ $stored->count() }} surat · {{ $stored->pluck('employee_id')->unique()->count() }} karyawan · hapus = Poin 6 dihitung ulang</p>
         </div>
         <div class="overflow-x-auto">
             <table class="table-lines min-w-full text-sm">
@@ -426,7 +425,7 @@
                 if (! rows.length) return;
                 const empty = rows.find(r => squash(r.summary) === '');
                 if (empty) { alert(`Kasus untuk ${empty.name} masih kosong.`); return; }
-                if (! confirm(`Simpan ${rows.length} surat sanksi (${this.employeesOk} karyawan) untuk periode ${this.period}? Poin 6 karyawan tersebut menjadi C / D dan TERKUNCI (Penilai tidak bisa mengubahnya); status tetap Draf.`)) return;
+                if (! confirm(`Simpan ${rows.length} surat (${this.employeesOk} karyawan, ${this.period})? Poin 6 menjadi C / D dan terkunci.`)) return;
                 this.saving = true; this.result = ''; this.skipped = [];
                 try {
                     const response = await fetch(config.storeUrl, {

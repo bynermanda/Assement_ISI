@@ -35,7 +35,7 @@
             </span>
             <div>
                 <p class="text-2xl font-bold text-slate-900">{{ tb('Semua tugas bulan ini sudah selesai. Terima kasih!') }}</p>
-                <p class="mt-1 text-slate-800">{{ tb('Anda masih bisa membuka daftar di bawah untuk melihat hasilnya.') }}</p>
+                <p class="mt-1 text-slate-800">{{ tb('Hasilnya ada di daftar di bawah.') }}</p>
             </div>
         </div>
     @endif
@@ -45,7 +45,7 @@
         <section class="rounded-xl border-2 border-rose-400 bg-white" aria-labelledby="sentback-title">
             <div class="border-b-2 border-rose-200 bg-rose-50 px-6 py-5 md:px-8">
                 <h2 id="sentback-title" class="text-2xl font-bold text-rose-900">{{ tb('Perlu diperbaiki (:n)', ['n' => $my['sentBack']->count()]) }}</h2>
-                <p class="text-rose-900">{{ tb('Penilaian ini dikembalikan oleh atasan. Baca catatannya, perbaiki, lalu kirim lagi.') }}</p>
+                <p class="text-rose-900">{{ tb('Dikembalikan atasan: baca catatan, perbaiki, lalu kirim lagi.') }}</p>
             </div>
             <ul class="divide-y divide-slate-200">
                 @foreach ($my['sentBack'] as $item)
@@ -106,7 +106,7 @@
                                 </div>
                                 <p class="mt-1 text-slate-700">{{ t(str_contains($task['key'], 'approve') ? 'Sudah disetujui bulan ini' : 'Sudah dinilai bulan ini') }}: <span class="font-semibold text-slate-900">{{ t(':done dari :total', ['done' => $task['done'], 'total' => $task['total']]) }}</span></p>
                                 @if ($task['notSent'] > 0)
-                                    <p class="text-slate-700">{{ tb(':n belum dikirim oleh Penilai. Akan muncul di sini setelah dikirim.', ['n' => $task['notSent']]) }}</p>
+                                    <p class="text-slate-700">{{ tb(':n belum dikirim Penilai.', ['n' => $task['notSent']]) }}</p>
                                 @endif
                             </div>
                         @endif
@@ -149,9 +149,9 @@
                 <li class="flex gap-3"><span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-900 font-bold text-white">1</span>
                     <span>{{ tb('Klik tombol hijau pada kotak tugas.') }}</span></li>
                 <li class="flex gap-3"><span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-900 font-bold text-white">2</span>
-                    <span>{{ tb('Pilih nilai A, B, C atau D (menilai), atau centang nama (menyetujui).') }}</span></li>
+                    <span>{{ tb('Menilai: pilih A–D. Menyetujui: centang nama.') }}</span></li>
                 <li class="flex gap-3"><span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-900 font-bold text-white">3</span>
-                    <span>{{ tb('Klik Kirim / Approve. Kembali ke halaman ini lewat menu Tugas Saya.') }}</span></li>
+                    <span>{{ tb('Klik Kirim / Approve. Kembali lewat menu Tugas Saya.') }}</span></li>
             </ol>
             <p class="mt-3 text-slate-700">{{ tb('Ada kendala? Hubungi HRD.') }}</p>
         </section>

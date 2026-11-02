@@ -4,7 +4,7 @@
 
 @section('title', 'Assessment 2')
 @section('heading', 'Assessment 2')
-@section('subheading', t('Periode') . ': ' . $periodLabel . ' · ' . t('Pimpinan yang Anda nilai. Kriteria, bobot dan target mengikuti unit masing-masing.'))
+@section('subheading', t('Periode') . ': ' . $periodLabel . ' · ' . t('Pimpinan yang Anda nilai. Kriteria mengikuti unit masing-masing.'))
 
 @section('content')
 <div class="space-y-4">

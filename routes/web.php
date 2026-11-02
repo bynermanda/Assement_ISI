@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\A1RouteController;
 use App\Http\Controllers\A2GuidelineController;
 use App\Http\Controllers\AdminAssessmentController;
 use App\Http\Controllers\Assessment2Controller;
@@ -75,6 +76,18 @@ Route::middleware(['auth', 'throttle:writes'])->group(function () {
                 Route::put('/a2/{unit}/criteria', [A2GuidelineController::class, 'saveCriteria'])->name('a2.criteria');
                 Route::put('/a2/{unit}/participants', [A2GuidelineController::class, 'saveParticipants'])->name('a2.participants');
                 Route::post('/a2/{unit}/participants', [A2GuidelineController::class, 'addParticipant'])->name('a2.participants.add');
+                // units = assessment forms (e.g. one department, two forms for Kepala Seksi 1 / 2); participants can be removed
+                Route::post('/a2/units', [A2GuidelineController::class, 'storeUnit'])->name('a2.units.store');
+                Route::put('/a2/{unit}', [A2GuidelineController::class, 'updateUnit'])->whereNumber('unit')->name('a2.units.update');
+                Route::delete('/a2/{unit}', [A2GuidelineController::class, 'destroyUnit'])->whereNumber('unit')->name('a2.units.destroy');
+                Route::delete('/a2/participants/{participant}', [A2GuidelineController::class, 'destroyParticipant'])->whereNumber('participant')->name('a2.participants.destroy');
+
+                // Guidelines > Jalur Khusus A1: add / remove people of the Assessment 1 special routes (a1_routes), move to A2
+                Route::get('/routes', [A1RouteController::class, 'index'])->name('routes');
+                Route::post('/routes', [A1RouteController::class, 'store'])->name('routes.store');
+                Route::put('/routes/group', [A1RouteController::class, 'updateGroup'])->name('routes.group');
+                Route::delete('/routes/{a1Route}', [A1RouteController::class, 'destroy'])->whereNumber('a1Route')->name('routes.destroy');
+                Route::post('/routes/a2/{employee}', [A1RouteController::class, 'moveToA2'])->name('routes.a2');
 
                 // Guidelines > Skala Nilai Akhir: the A / B / C / D thresholds for everybody (admin only)
                 Route::get('/scale', [GradeScaleController::class, 'edit'])->name('scale');

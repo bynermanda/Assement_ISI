@@ -317,7 +317,7 @@ class AssessmentController extends Controller
         return redirect()->route('approval.index')->with(
             $approved > 0 ? 'success' : 'error',
             $approved > 0
-                ? t(':n penilaian disetujui.', ['n' => $approved]) . ' ' . ($skipped ? t(':n dilewati (sudah ditangani, bukan milik Anda, atau Anda buat sendiri).', ['n' => $skipped]) : t('Yang lain tetap di daftar sampai Anda approve atau kembalikan.'))
+                ? t(':n penilaian disetujui.', ['n' => $approved]) . ' ' . ($skipped ? t(':n dilewati (sudah ditangani atau bukan wewenang Anda).', ['n' => $skipped]) : t('Yang lain tetap di daftar sampai Anda approve atau kembalikan.'))
                 : t('Tidak ada yang disetujui: penilaian yang dicentang sudah tidak menunggu Anda.')
         );
     }

@@ -41,7 +41,7 @@
             <button type="submit" name="action" value="draft"
                     class="rounded border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">{{ t('Simpan draf') }}</button>
             <button type="submit" name="action" value="submit" :disabled="!complete"
-                    onclick="return confirm(@js(t('Kirim penilaian ini ke Approver? Setelah dikirim tidak bisa diubah kecuali dikembalikan.')))"
+                    onclick="return confirm(@js(t('Kirim ke Approver? Penilaian terkunci kecuali dikembalikan.')))"
                     class="rounded bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
                     :title="complete ? '' : @js(t('Beri nilai semua kriteria terlebih dahulu'))">
                 {{ t('Kirim ke Approver') }}

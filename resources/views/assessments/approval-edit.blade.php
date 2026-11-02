@@ -4,7 +4,7 @@
 
 @section('title', 'Periksa penilaian')
 @section('heading', tb('Periksa dan edit penilaian'))
-@section('subheading', t('Nilai ini dikirim oleh Penilai 1. Anda boleh mengubahnya sebelum approve.'))
+@section('subheading', t('Nilai dari Penilai 1; boleh diubah sebelum approve.'))
 
 @section('content')
 @php
@@ -36,8 +36,8 @@
             <p class="text-sm text-slate-500">{{ $employee->id_employee }} &middot; {{ $employee->department }}@if ($employee->section) / {{ $employee->section }}@endif &middot; {{ $employee->position }} &middot; {{ $employee->grade }}</p>
             @if ($lockedColumns !== [])
                 <p class="mt-2 rounded border border-teal-200 bg-teal-50 px-3 py-2 text-xs text-teal-800">
-                    @if (array_intersect($lockedColumns, \App\Models\Assessment::HRD_COLUMNS))<span class="block">{{ tb('Kehadiran dan keterlambatan diisi oleh HRD dan tidak bisa diubah. Silakan nilai kriteria lainnya.') }}</span>@endif
-                    @if (array_intersect($lockedColumns, \App\Models\Assessment::SANCTION_COLUMNS))<span class="block font-bold text-rose-800">{{ tb('Poin 6 Kepatuhan Keselamatan diisi dari data Sanksi HRD dan tidak bisa diubah.') }}</span>@endif
+                    @if (array_intersect($lockedColumns, \App\Models\Assessment::HRD_COLUMNS))<span class="block">{{ tb('Kehadiran dan keterlambatan diisi HRD (terkunci). Nilai kriteria lainnya.') }}</span>@endif
+                    @if (array_intersect($lockedColumns, \App\Models\Assessment::SANCTION_COLUMNS))<span class="block font-bold text-rose-800">{{ tb('Poin 6 diisi dari Sanksi HRD (terkunci).') }}</span>@endif
                 </p>
             @endif
         </div>
@@ -59,7 +59,7 @@
             {{ t('Simpan perubahan') }}
         </button>
         <button type="submit" name="action" value="approve"
-                onclick="return confirm(@js(t('Simpan nilai ini dan approve? Penilaian yang sudah disetujui dikunci.')))"
+                onclick="return confirm(@js(t('Simpan dan approve? Penilaian akan terkunci.')))"
                 class="rounded bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2">
             {{ t('Simpan dan approve') }}
         </button>
