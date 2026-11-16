@@ -1,59 +1,145 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Penilaian Kinerja Karyawan · PT Indosafety Sentosa
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplikasi web penilaian kinerja bulanan karyawan: penilai mengisi nilai, atasan menyetujui, HRD mengelola data dan
+mengekspor hasil yang sudah disetujui ke Excel / PDF.
 
-## About Laravel
+Dibangun dengan **Laravel 12** (PHP ≥ 8.2), database **PostgreSQL di Supabase**, tampilan Blade + Tailwind + Alpine.js,
+dan dideploy sebagai container Docker di **Render**.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Fitur
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+| Area | Isi |
+|---|---|
+| **Assessment 1** (per departemen) | Form penilaian per karyawan dan *Assessment Massal* (grid) untuk departemen besar; Penilai 1 menilai, Penilai 2 menyetujui / menolak. Prinsip empat mata: penilai tidak bisa menyetujui penilaiannya sendiri. |
+| **Assessment 2** (per unit) | Kriteria berbobot per unit; penilai dan approver ditentukan per peserta. |
+| **Impor HRD** | Kehadiran (Poin 1 & 2) dan sanksi (Poin 6 Kepatuhan Keselamatan) dari file Excel; dipratinjau di browser, divalidasi ulang di server, nilai terkunci. |
+| **Panduan** | Deskripsi kriteria per departemen / seksi, Jalur Khusus A1, unit Assessment 2, Skala Nilai Akhir (berlaku per periode). |
+| **Export** | Hasil yang sudah disetujui: Excel dan PDF, termasuk rekap rata-rata beberapa periode. |
+| **Pengguna** | Akun departemen (Penilai 1 / 2), akun pribadi Assessment 2, admin HRD; generate akun per departemen, reset password. |
+| **Backup** | Admin mengunduh seluruh database sebagai satu file `.sql` (lihat [Backup](#backup--pemulihan)). |
+| **Bahasa** | Indonesia; akun Assessment 2 (`a2.*`) juga melihat teks 繁體中文 (`lang/zh_TW.json`). |
 
-## Learning Laravel
+### Peran
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+| Peran | Kode | Akses |
+|---|---|---|
+| Admin (HRD) | `admin` | Semua data, pengguna, impor, panduan, export, backup |
+| Akun departemen (A1) | `reviewer` | Penilai 1 (menilai) / Penilai 2 (menyetujui) untuk seksi yang dipegang |
+| Akun pribadi (A2) | `assessor` | Menilai / menyetujui peserta Assessment 2 yang ditugaskan |
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+## Menjalankan di komputer lokal
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Kebutuhan: **PHP 8.2.35+ / 8.3.36+** (versi lebih lama rentan PHP2Shell) dengan ekstensi `pdo_pgsql`, `pgsql`,
+`mbstring`, `gd`, `zip`, `fileinfo`, `curl`, `openssl`; **Composer 2**; akses ke database PostgreSQL (Supabase).
 
-### Premium Partners
+```bash
+git clone <url-repo> indosafety-penilaian
+cd indosafety-penilaian
+composer install
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+# buat file .env (lihat tabel variabel di bawah), lalu:
+php artisan key:generate
+php artisan migrate        # HANYA untuk database baru yang masih kosong
+php artisan serve          # http://127.0.0.1:8000
+```
 
-## Contributing
+Database yang sudah berisi data **tidak perlu** `migrate` ulang. Jangan pernah menjalankan `migrate:fresh` atau
+`db:wipe` ke database produksi: semua data akan terhapus.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Variabel lingkungan (`.env`)
 
-## Code of Conduct
+File `.env` **tidak** disimpan di repo. Buat sendiri di root proyek, atau isi di dashboard Render untuk produksi.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+| Variabel | Contoh / keterangan |
+|---|---|
+| `APP_NAME` | `Penilaian Kinerja Karyawan` |
+| `APP_ENV` | `local` di laptop, `production` di server |
+| `APP_DEBUG` | `true` di laptop, **wajib `false`** di server |
+| `APP_KEY` | dibuat dengan `php artisan key:generate` (lokal) atau `php artisan key:generate --show` (untuk Render) |
+| `APP_URL` | alamat aplikasi, persis seperti di browser, tanpa `/` di akhir |
+| `APP_LOCALE` | `id` |
+| `DB_CONNECTION` | `pgsql` |
+| `DB_HOST` | host *Transaction pooler* dari Supabase → Connect |
+| `DB_PORT` | `6543` (Transaction pooler) |
+| `DB_DATABASE` | `postgres` |
+| `DB_USERNAME` | `postgres.<project-ref>` dari Supabase |
+| `DB_PASSWORD` | password database Supabase |
+| `DB_SSLMODE` | `require` |
+| `DB_EMULATE_PREPARES` | `true` (wajib untuk Transaction pooler) |
+| `DB_CONNECT_TIMEOUT` | `10` |
+| `SESSION_DRIVER` / `CACHE_STORE` | `file` |
+| `SESSION_SECURE_COOKIE` | `true` di server (HTTPS) |
+| `TRUSTED_PROXIES` | `*` di Render; IP reverse proxy di server internal |
+| `DEFAULT_ACCOUNT_PASSWORD` | password awal untuk akun baru (min. 8 karakter, huruf + angka) |
+| `FORCE_PASSWORD_CHANGE` | `true`: akun baru / di-reset wajib ganti password saat login pertama |
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Deploy (Render + Supabase)
 
-## License
+Panduan lengkap: [DEPLOY-RENDER.md](DEPLOY-RENDER.md). Ringkasnya:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+1. Render → **New → Blueprint** → pilih repo ini; Render membaca [`render.yaml`](render.yaml).
+2. Isi variabel bertanda `sync: false` (APP_KEY, APP_URL, DB_*, DEFAULT_ACCOUNT_PASSWORD) di dashboard, **bukan** di repo.
+3. Tambahkan `SESSION_SECURE_COOKIE=true` dan `FORCE_PASSWORD_CHANGE=true`.
+4. Setiap `git push` ke `main` otomatis dideploy ulang. Cek `https://<alamat-aplikasi>/up` → *Application up*.
+
+Image Docker: `php:8.3.36-apache` (versi persis yang sudah menambal PHP2Shell, jangan diturunkan). Container
+**tidak** menjalankan migrasi otomatis.
+
+---
+
+## Database
+
+- Struktur dibuat oleh migrasi di `database/migrations`. `php artisan migrate` pada database kosong menghasilkan
+  struktur yang identik dengan produksi.
+- [`database/schema/schema-public.sql`](database/schema/schema-public.sql): acuan struktur 19 tabel (tanpa data).
+  Tidak dimuat otomatis; perbarui bila ada migrasi baru.
+- RLS (Row Level Security) aktif di semua tabel tanpa policy: tabel tidak bisa dibaca lewat API Supabase, aplikasi
+  tetap bisa karena terhubung sebagai pemilik database.
+
+---
+
+## Backup & pemulihan
+
+**Membuat backup (disarankan setiap bulan, setelah penilaian di-approve):** login sebagai admin → menu **Backup** →
+**Unduh Backup**. File `backup-penilaian-<tanggal>.sql` berisi struktur + seluruh data. Simpan di folder perusahaan
+yang aksesnya terbatas: file ini berisi data pribadi karyawan, jangan dikirim lewat chat / email pribadi dan jangan
+diunggah ke GitHub.
+
+**Memulihkan:** Supabase → **SQL Editor** → **New query** → tempel seluruh isi file → **Run**.
+Pemulihan **mengganti semua data saat ini**; bila terjadi error, tidak ada yang berubah (satu transaksi).
+
+---
+
+## Perintah artisan khusus
+
+| Perintah | Fungsi |
+|---|---|
+| `php artisan a2:import <file.xlsx> [--dry-run] [--password=]` | Impor kriteria, peserta dan akun Assessment 2 dari workbook HRD |
+| `php artisan trial:assessments status\|seed\|purge` | Data penilaian uji coba untuk mencoba export (jangan di produksi) |
+
+---
+
+## Keamanan
+
+- **Jangan pernah meng-commit** `.env`, salinan `.env`, file data karyawan (`*.csv`, `*.xlsx`) atau file backup
+  `.sql`; sebagian besar sudah diabaikan oleh `.gitignore` dan `.dockerignore`.
+- Rahasia produksi hanya disimpan di dashboard Render dan password manager perusahaan.
+- Header keamanan (CSP, HSTS, X-Frame-Options), batas percobaan login dan batas jumlah aksi per menit aktif
+  (`app/Http/Middleware/SecurityHeaders.php`, `app/Providers/AppServiceProvider.php`).
+- PHP minimal 8.2.35 / 8.3.36 (PHP2Shell, CVE-2026-109618 / CVE-2026-109619); `session.upload_progress` dimatikan
+  di `docker/php.ini`.
+
+### Pemeliharaan rutin
+
+| Kapan | Apa |
+|---|---|
+| Setiap bulan | Unduh backup; jalankan `composer audit`; periksa log error di Render |
+| Saat ada rilis keamanan PHP / Laravel | Naikkan versi di `Dockerfile` / `composer.lock`, uji export PDF & Excel, push |
+| Saat penilai keluar / pindah | Reset password atau hapus akunnya di menu **Pengguna**, lalu alihkan tugas penilaiannya |
+| Setiap 3 bulan | Uji pemulihan backup ke proyek Supabase uji |
