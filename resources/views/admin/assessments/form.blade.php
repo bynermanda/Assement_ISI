@@ -164,6 +164,10 @@
             </div>
         </div>
 
+        @if ($isEdit)
+            @include('partials.attachments.list', ['attachments' => $assessment->attachments])
+        @endif
+
         <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <a href="{{ route('admin.assessments.index') }}" class="rounded border border-slate-300 bg-white px-5 py-2.5 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50">Batal</a>
             <button type="submit" class="rounded bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2">

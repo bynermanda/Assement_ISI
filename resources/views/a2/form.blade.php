@@ -7,7 +7,7 @@
 @section('subheading', t('Periode') . ': ' . $periodLabel . ' · ' . t('Unit') . ': ' . $participant->unit->name . ' · ' . t('Approver') . ': ' . ($participant->approver?->name ?? '-'))
 
 @section('content')
-<form method="POST" action="{{ route('a2.store', $participant->employee_id) }}"
+<form method="POST" action="{{ route('a2.store', $participant->employee_id) }}" enctype="multipart/form-data"
       x-data="a2Form(@js($scores), @js($criteria->mapWithKeys(fn ($c) => [$c->id => $c->weight])))"
       class="space-y-6">
     @csrf
@@ -36,6 +36,8 @@
     </div>
 
     @if ($criteria->isNotEmpty())
+        @include('partials.attachments.input', ['attachments' => $existing?->attachments ?? collect()])
+
         <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <a href="{{ route('a2.index') }}" class="rounded border border-slate-300 bg-white px-5 py-2.5 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50">{{ t('Kembali') }}</a>
             <button type="submit" name="action" value="draft"

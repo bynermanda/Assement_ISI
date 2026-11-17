@@ -3,13 +3,16 @@
 namespace App\Providers;
 
 use App\Database\PooledPostgresConnection;
+use App\Models\A2Assessment;
 use App\Models\A2Participant;
+use App\Models\Assessment;
 use App\Models\Employee;
 use App\Models\User;
 use App\Support\RefCache;
 use App\Support\ReviewRules;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Connection;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -30,6 +33,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // assessment_attachments.attachable_type stores these short names, not class names
+        Relation::morphMap(['a1' => Assessment::class, 'a2' => A2Assessment::class]);
+
         // ---- RefCache invalidation: every model write of cached reference data bumps its group
         //      (bulk writes that bypass models flush explicitly: employee import, account merge/split, a2:import, guidelines)
         // "routes" (the computed Assessment 1 special routes) depends on employees, accounts and Assessment 2 participants

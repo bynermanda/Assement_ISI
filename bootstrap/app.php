@@ -20,6 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
     $middleware->trustProxies(at: $proxies === '*' ? '*' : array_map('trim', explode(',', $proxies)));
     // X-Frame-Options, nosniff, CSP, HSTS (on HTTPS) ... on every web response
     $middleware->web(append: [\App\Http\Middleware\SecurityHeaders::class]);
+    // once a day, after the response: delete expired assessment attachments (no cron on Render free)
+    $middleware->web(append: [\App\Http\Middleware\PruneAttachmentsDaily::class]);
 })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

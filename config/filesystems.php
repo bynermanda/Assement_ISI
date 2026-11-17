@@ -60,6 +60,29 @@ return [
             'report' => false,
         ],
 
+        // Assessment attachments (App\Support\Attachments): a PRIVATE Supabase Storage bucket through its S3 protocol
+        // (Supabase > Storage > S3 Connection). Without keys: a private local folder, for development only; on the
+        // server uploads are then switched off, because Render's disk is wiped on every deploy.
+        'lampiran' => env('SUPABASE_S3_KEY') ? [
+            'driver' => 's3',
+            'key' => env('SUPABASE_S3_KEY'),
+            'secret' => env('SUPABASE_S3_SECRET'),
+            'region' => env('SUPABASE_S3_REGION', 'ap-southeast-1'),
+            'bucket' => env('SUPABASE_S3_BUCKET', 'lampiran-penilaian'),
+            'endpoint' => env('SUPABASE_S3_ENDPOINT'),       // https://<project-ref>.storage.supabase.co/storage/v1/s3
+            'use_path_style_endpoint' => true,
+            // newer AWS SDKs add CRC checksums to every request; only send them when an operation requires one
+            'request_checksum_calculation' => 'when_required',
+            'response_checksum_validation' => 'when_required',
+            'throw' => true,
+            'report' => true,
+        ] : [
+            'driver' => 'local',
+            'root' => storage_path('app/private/lampiran'),
+            'throw' => true,
+            'report' => true,
+        ],
+
     ],
 
     /*

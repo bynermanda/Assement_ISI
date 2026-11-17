@@ -38,6 +38,7 @@
                                 <th class="px-3 py-3 text-right">@include('assessments.partials.heading', ['key' => 'points'])</th>
                                 <th class="px-3 py-3 text-center font-semibold text-slate-700">{{ tb('Nilai Akhir') }}</th>
                                 <th class="px-3 py-3">@include('assessments.partials.heading', ['key' => 'notes'])</th>
+                                <th class="px-3 py-3 font-medium">{{ tb('Lampiran') }}</th>
                                 <th class="px-3 py-3 text-right font-medium">{{ tb('Aksi') }}</th>
                             </tr>
                         </thead>
@@ -72,6 +73,7 @@
                                             <span class="text-slate-400">–</span>
                                         @endif
                                     </td>
+                                    <td class="px-3 py-2">@include('partials.attachments.list', ['attachments' => $a->attachments, 'compact' => true])</td>
                                     <td class="whitespace-nowrap px-3 py-2 text-right">
                                         <a href="{{ route('a2.show', $a) }}" class="rounded border border-slate-300 px-3 py-1 text-sm font-medium text-slate-700 hover:bg-slate-50">{{ t('Lihat') }}</a>
                                         @if ($rows[$i]['selectable'])

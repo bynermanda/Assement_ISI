@@ -7,7 +7,7 @@
 @section('subheading', t('Periode') . ': ' . $periodLabel . ' | ' . t('Seksi') . ': ' . (implode(', ', $groups) ?: '-'))
 
 @section('content')
-<form method="POST" action="{{ route('assessments.store') }}"
+<form method="POST" action="{{ route('assessments.store') }}" enctype="multipart/form-data"
       x-data="assessmentForm(@js($initial), @js($weights))"
       class="space-y-6">
     @csrf
@@ -117,6 +117,8 @@
 
             @include('assessments.partials.criteria-table', ['notes' => $notes])
         </div>
+
+        @include('partials.attachments.input', ['attachments' => $existing?->attachments ?? collect()])
 
         <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <button type="submit" name="action" value="draft"

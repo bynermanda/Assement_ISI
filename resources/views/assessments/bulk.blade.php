@@ -38,6 +38,11 @@
             Belum ada karyawan untuk akun Anda.
         </div>
     @else
+        <p class="rounded border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600">
+            Perlu melampirkan file (PDF / foto) untuk seorang karyawan? Simpan sebagai draf di sini, lalu buka
+            <a href="{{ route('assessments.create') }}" class="font-semibold text-teal-800 hover:underline">Form Assessment</a>
+            karyawan tersebut, tambahkan lampirannya, dan kirim dari sana.
+        </p>
         {{-- Messages --}}
         <div x-show="flash" x-cloak class="rounded border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-800" role="status" x-text="flash"></div>
         <div x-show="restored" x-cloak class="flex flex-col gap-2 rounded border border-sky-300 bg-sky-50 px-4 py-3 text-sm text-sky-900 sm:flex-row sm:items-center sm:justify-between">

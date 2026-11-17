@@ -30,6 +30,7 @@ class DatabaseBackup
         'a2_participants'       => 'Peserta Assessment 2',
         'a2_assessments'        => 'Penilaian Assessment 2',
         'app_settings'          => 'Pengaturan aplikasi',
+        'assessment_attachments' => 'Daftar lampiran penilaian (filenya tidak ikut)',
         'migrations'            => 'Riwayat versi struktur database',
     ];
 

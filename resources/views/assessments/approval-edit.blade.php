@@ -51,6 +51,8 @@
         @include('assessments.partials.criteria-table', ['notes' => $notes, 'scalePeriod' => $assessment->period])
     </div>
 
+    @include('partials.attachments.list', ['attachments' => $assessment->attachments])
+
 
     <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <a href="{{ route('approval.index') }}" class="rounded border border-slate-300 bg-white px-5 py-2.5 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50">{{ t('Kembali') }}</a>

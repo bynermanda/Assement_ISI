@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Collection;
 
 /**
@@ -48,6 +49,12 @@ class A2Assessment extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by', 'username');
+    }
+
+    /** Supporting files from the Penilai (App\Support\Attachments). */
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(AssessmentAttachment::class, 'attachable')->orderBy('id');
     }
 
     public function isEditable(): bool

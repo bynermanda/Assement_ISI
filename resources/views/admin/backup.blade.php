@@ -68,6 +68,24 @@
     {{-- how to --}}
     <div class="space-y-6">
         <div class="rounded-lg border border-slate-200 bg-white p-6">
+            <h2 class="text-xl font-bold text-slate-900">Lampiran penilaian</h2>
+            <p class="mt-2 text-2xl font-bold tabular-nums text-slate-900">
+                {{ number_format($lampiran['files'], 0, ',', '.') }} file
+                <span class="text-base font-normal text-slate-600">· {{ number_format($lampiran['bytes'] / 1048576, 1, ',', '.') }} MB</span>
+            </p>
+            <ul class="mt-3 list-disc space-y-2 pl-5 text-base text-slate-700">
+                <li>File lampiran (PDF / foto) disimpan di Supabase Storage dan <b>tidak ikut</b> di file backup <code>.sql</code>; yang ikut hanya daftarnya.</li>
+                <li>Lampiran dihapus otomatis {{ \App\Support\Attachments::KEEP_MONTHS }} bulan setelah penilaiannya di-approve. Nilai dan catatannya tetap tersimpan.</li>
+                <li>Pantau kapasitas di Supabase &gt; <b>Settings &gt; Usage</b>.</li>
+            </ul>
+            @unless ($lampiran['enabled'])
+                <p class="mt-3 rounded border border-l-4 border-slate-200 border-l-amber-500 px-4 py-3 text-base text-slate-900">
+                    <b>Unggah lampiran belum aktif:</b> isi kunci <code>SUPABASE_S3_*</code> di Environment Render.
+                </p>
+            @endunless
+        </div>
+
+        <div class="rounded-lg border border-slate-200 bg-white p-6">
             <h2 class="text-xl font-bold text-slate-900">Menyimpan file backup</h2>
             <ul class="mt-3 list-disc space-y-2 pl-5 text-base text-slate-700">
                 <li>Simpan di folder perusahaan berakses terbatas.</li>

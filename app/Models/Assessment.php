@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Assessment extends Model
 {
@@ -228,6 +229,12 @@ class Assessment extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by', 'username');
+    }
+
+    /** Supporting files from the Penilai (App\Support\Attachments). */
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(AssessmentAttachment::class, 'attachable')->orderBy('id');
     }
 
     /** Leave days -> score. 0 = A, 1 = B, 2-3 = C, 4 or more = D. */

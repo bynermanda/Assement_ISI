@@ -18,6 +18,7 @@ dan dideploy sebagai container Docker di **Render**.
 | **Panduan** | Deskripsi kriteria per departemen / seksi, Jalur Khusus A1, unit Assessment 2, Skala Nilai Akhir (berlaku per periode). |
 | **Export** | Hasil yang sudah disetujui: Excel dan PDF, termasuk rekap rata-rata beberapa periode. |
 | **Pengguna** | Akun departemen (Penilai 1 / 2), akun pribadi Assessment 2, admin HRD; generate akun per departemen, reset password. |
+| **Lampiran** | Penilai bisa melampirkan bukti (PDF / JPG / PNG, maks. 3 file × 2 MB) saat penilaian masih Draf / Dikembalikan; approver dan admin hanya melihat. Dihapus otomatis 6 bulan setelah di-approve (lihat [Lampiran](#lampiran-penilaian)). |
 | **Backup** | Admin mengunduh seluruh database sebagai satu file `.sql` (lihat [Backup](#backup--pemulihan)). |
 | **Bahasa** | Indonesia; akun Assessment 2 (`a2.*`) juga melihat teks 繁體中文 (`lang/zh_TW.json`). |
 
@@ -76,6 +77,10 @@ File `.env` **tidak** disimpan di repo. Buat sendiri di root proyek, atau isi di
 | `TRUSTED_PROXIES` | `*` di Render; IP reverse proxy di server internal |
 | `DEFAULT_ACCOUNT_PASSWORD` | password awal untuk akun baru (min. 8 karakter, huruf + angka) |
 | `FORCE_PASSWORD_CHANGE` | `true`: akun baru / di-reset wajib ganti password saat login pertama |
+| `SUPABASE_S3_ENDPOINT` | `https://<project-ref>.storage.supabase.co/storage/v1/s3` (Supabase → Storage → S3 Connection) |
+| `SUPABASE_S3_REGION` | region proyek Supabase, mis. `ap-southeast-1` |
+| `SUPABASE_S3_BUCKET` | `lampiran-penilaian` |
+| `SUPABASE_S3_KEY` / `SUPABASE_S3_SECRET` | *access key* S3 dari Supabase (rahasia). Kosong = di laptop lampiran disimpan di `storage/app/private/lampiran`; di server unggah lampiran nonaktif |
 
 ---
 
@@ -93,11 +98,28 @@ Image Docker: `php:8.3.36-apache` (versi persis yang sudah menambal PHP2Shell, j
 
 ---
 
+## Lampiran penilaian
+
+- **Siapa:** penilai mengunggah / menghapus lampiran di Form Assessment (A1) atau form Assessment 2 selama penilaian
+  berstatus Draf atau Dikembalikan; setelah dikirim terkunci. Approver dan admin hanya melihat (pratinjau PDF / foto).
+  Pengguna Assessment Massal: simpan draf, lalu tambahkan lampiran lewat Form Assessment.
+- **Batas:** PDF, JPG, PNG; maks. 3 file per penilaian, 2 MB per file. Foto dikecilkan otomatis di browser.
+- **Keamanan:** file disimpan di bucket **privat** Supabase Storage `lampiran-penilaian` (dibuat sekali; batas jenis &
+  ukuran juga dipasang di bucket) dengan nama acak. Setiap tampilan lewat `/lampiran/{id}` setelah cek hak akses
+  (penilai / approver karyawan tersebut / admin). Gambar di-encode ulang (metadata & muatan tersembunyi dibuang),
+  PDF dicek tanda tangannya. Kode: `app/Support/Attachments.php`.
+- **Retensi:** `php artisan lampiran:prune` menghapus lampiran 6 bulan setelah penilaian di-approve (dan lampiran
+  yang penilaiannya sudah terhapus). Berjalan otomatis sekali sehari (request pertama hari itu; di server dengan cron
+  juga lewat `schedule:run`). Nilai dan catatan penilaian tidak ikut terhapus.
+- File lampiran **tidak** termasuk di backup `.sql`; pemakaiannya terlihat di menu **Backup**.
+
+---
+
 ## Database
 
 - Struktur dibuat oleh migrasi di `database/migrations`. `php artisan migrate` pada database kosong menghasilkan
   struktur yang identik dengan produksi.
-- [`database/schema/schema-public.sql`](database/schema/schema-public.sql): acuan struktur 19 tabel (tanpa data).
+- [`database/schema/schema-public.sql`](database/schema/schema-public.sql): acuan struktur 20 tabel (tanpa data).
   Tidak dimuat otomatis; perbarui bila ada migrasi baru.
 - RLS (Row Level Security) aktif di semua tabel tanpa policy: tabel tidak bisa dibaca lewat API Supabase, aplikasi
   tetap bisa karena terhubung sebagai pemilik database.

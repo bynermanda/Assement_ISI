@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AppSetting;
+use App\Support\Attachments;
 use App\Support\DatabaseBackup;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Carbon;
@@ -30,6 +31,7 @@ class BackupController extends Controller
             'tables'    => DatabaseBackup::supported() ? (new DatabaseBackup)->tables() : [],
             'last'      => $last,
             'overdue'   => ! $last || Carbon::parse($last['at'])->diffInDays(now()) > self::REMIND_AFTER_DAYS,
+            'lampiran'  => Attachments::usage() + ['enabled' => Attachments::enabled()],
         ]);
     }
 

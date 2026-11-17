@@ -6,6 +6,7 @@ use App\Http\Controllers\AdminAssessmentController;
 use App\Http\Controllers\Assessment2Controller;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AssessmentImportController;
+use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\SanctionImportController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BackupController;
@@ -48,6 +49,9 @@ Route::middleware(['auth', 'throttle:writes'])->group(function () {
     Route::middleware(EnsurePasswordIsChanged::class)->group(function () {
 
         Route::get('/', [AssessmentController::class, 'dashboard'])->name('dashboard');
+
+        // Assessment attachments (A1 & A2): view only; who may see one is checked per file (Attachments::canView)
+        Route::get('lampiran/{attachment}', [AttachmentController::class, 'show'])->whereNumber('attachment')->name('attachments.show');
 
         // ---- Admin (HRD) ------------------------------------------------
         Route::middleware('role:admin')->group(function () {

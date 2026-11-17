@@ -47,7 +47,21 @@ services:
         value: file
       - key: CACHE_STORE
         value: file
-      - key: FORCE_PASSWORD_CHANGE
-        value: "false"
+      - key: SESSION_SECURE_COOKIE   # login cookie only over HTTPS
+        value: "true"
+      - key: FORCE_PASSWORD_CHANGE   # new / reset accounts must choose their own password at first login
+        value: "true"
       - key: DEFAULT_ACCOUNT_PASSWORD
+        sync: false
+      # Assessment attachments: private Supabase Storage bucket via its S3 protocol
+      # (Supabase > Project Settings > Storage > S3 Connection: endpoint, region, "New access key")
+      - key: SUPABASE_S3_ENDPOINT    # https://<project-ref>.storage.supabase.co/storage/v1/s3
+        sync: false
+      - key: SUPABASE_S3_REGION
+        value: ap-southeast-1
+      - key: SUPABASE_S3_BUCKET
+        value: lampiran-penilaian
+      - key: SUPABASE_S3_KEY
+        sync: false
+      - key: SUPABASE_S3_SECRET
         sync: false

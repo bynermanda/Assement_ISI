@@ -7,6 +7,7 @@ use App\Models\A2Criterion;
 use App\Models\A2Participant;
 use App\Models\A2Unit;
 use App\Models\Assessment;
+use App\Support\Attachments;
 use App\Support\Roles;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -88,12 +89,15 @@ class Assessment2Controller extends Controller
         }
         $rules['notes.' . Assessment::NOTE_GENERAL] = ['nullable', 'string', 'max:' . Assessment::NOTE_MAX];
 
-        $data = $request->validate($rules, ['scores.*.required' => t('Beri nilai semua kriteria sebelum mengirim.')]);
+        $data = $request->validate($rules + Attachments::rules(), ['scores.*.required' => t('Beri nilai semua kriteria sebelum mengirim.')] + Attachments::messages());
 
         $existing = A2Assessment::where('employee_id', $participant->employee_id)->where('period', $period)->first();
         if ($existing && ! $existing->isEditable()) {
             return redirect()->route('a2.index')->with('error', t('Penilaian ini sudah berstatus: :status.', ['status' => \App\Support\Ui::status($existing->status)]));
         }
+
+        // checked before anything is saved: a refused file must not leave an already submitted assessment behind
+        $attachments = Attachments::prepare($existing, $request);
 
         $scores = [];
         foreach ($criteria as $c) {
@@ -103,7 +107,7 @@ class Assessment2Controller extends Controller
         }
         $notes = collect($data['notes'] ?? [])->map(fn ($t) => trim((string) $t))->filter()->all();
 
-        A2Assessment::updateOrCreate(
+        $assessment = A2Assessment::updateOrCreate(
             ['employee_id' => $participant->employee_id, 'period' => $period],
             [
                 'unit_id'           => $participant->unit_id,
@@ -117,6 +121,8 @@ class Assessment2Controller extends Controller
                 'rejection_note'    => null,
             ]
         );
+
+        Attachments::sync($assessment, $attachments, Auth::user()->username);
 
         return redirect()->route('a2.index')->with('success', $submit
             ? t('Penilaian :name sudah dikirim ke :approver.', ['name' => $participant->employee->name, 'approver' => $participant->approver?->name])
@@ -242,7 +248,7 @@ class Assessment2Controller extends Controller
     {
         $employees = A2Participant::where('approver_id', Auth::id())->pluck('employee_id');
 
-        return A2Assessment::with(['employee', 'unit', 'creator'])
+        return A2Assessment::with(['employee', 'unit', 'creator', 'attachments'])
             ->whereIn('employee_id', $employees)
             ->where('status', Assessment::STATUS_PENDING)
             ->orderBy('period')->get()

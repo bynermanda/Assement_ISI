@@ -147,6 +147,7 @@
     </main>
 </div>
 
+@include('partials.attachments.viewer')
 @stack('scripts')
 <script>
     // One submit per POST form: a second click while the first request is on its way is ignored.

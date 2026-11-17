@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Assessment;
 use App\Models\Employee;
+use App\Support\Attachments;
 use App\Support\ReviewRules;
 use App\Support\Roles;
 use Carbon\Carbon;
@@ -141,13 +142,16 @@ class AssessmentController extends Controller
             }
         }
 
-        $validated = $request->validate($rules, ['id_employee.in' => t('Karyawan ini bukan karyawan yang Anda nilai.')]);
+        $validated = $request->validate($rules + Attachments::rules(), ['id_employee.in' => t('Karyawan ini bukan karyawan yang Anda nilai.')] + Attachments::messages());
 
         if ($existing && ! in_array($existing->status, Assessment::EDITABLE_STATUSES, true)) {
             return back()->withInput()->withErrors([
                 'id_employee' => t('Penilaian karyawan ini untuk :period sudah berstatus: :status.', ['period' => $this->periodLabel($period), 'status' => \App\Support\Ui::status($existing->status)]),
             ]);
         }
+
+        // checked before anything is saved: a refused file must not leave an already submitted assessment behind
+        $attachments = Attachments::prepare($existing, $request);
 
         $scores = [];
         foreach (array_keys(Assessment::CRITERIA) as $column) {
@@ -158,7 +162,7 @@ class AssessmentController extends Controller
 
         $status = $validated['action'] === 'submit' ? Assessment::STATUS_PENDING : Assessment::STATUS_DRAFT;
 
-        Assessment::updateOrCreate(
+        $assessment = Assessment::updateOrCreate(
             ['employee_id' => $validated['id_employee'], 'period' => $period],
             $scores + [
                 'notes'          => Assessment::keepLockedNotes(Assessment::cleanNotes($validated['notes'] ?? null), $existing),
@@ -172,6 +176,8 @@ class AssessmentController extends Controller
                 'edited_at'      => null,
             ]
         );
+
+        Attachments::sync($assessment, $attachments, $user->username);
 
         return redirect()->route('dashboard')->with(
             'success',
@@ -192,7 +198,7 @@ class AssessmentController extends Controller
 
         $ids = ReviewRules::employeesFor($user, ReviewRules::STAGE_APPROVE)->pluck('id_employee');
 
-        $assessments = Assessment::with(['employee', 'creator'])
+        $assessments = Assessment::with(['employee', 'creator', 'attachments'])
             ->whereIn('employee_id', $ids)
             ->whereIn('status', self::AWAITING_APPROVAL)
             ->get()

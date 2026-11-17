@@ -1,6 +1,7 @@
 -- =====================================================================================================
--- Struktur skema `public` database produksi (Supabase, PostgreSQL 17), 19 tabel. HANYA struktur, tanpa data.
--- Diambil dari katalog database asli pada 22 Oktober 2026 saat pindah ke proyek Supabase baru.
+-- Struktur skema `public` database produksi (Supabase, PostgreSQL 17), 20 tabel. HANYA struktur, tanpa data.
+-- Diambil dari katalog database asli pada 22 Oktober 2026 saat pindah ke proyek Supabase baru;
+-- diperbarui 17 November 2026: tabel assessment_attachments (migrasi 2026_11_17_000001).
 --
 -- Fungsi: acuan / pemulihan darurat. Instalasi normal tetap memakai `php artisan migrate`, yang sejak
 -- migrasi 2026_10_17_000002 menghasilkan struktur yang identik dengan file ini.
@@ -441,3 +442,30 @@ ALTER TABLE public.password_reset_tokens ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sessions ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+
+-- ----- assessment_attachments (migrasi 2026_11_17_000001): lampiran penilaian A1 / A2; filenya di Supabase Storage -----
+
+CREATE SEQUENCE public.assessment_attachments_id_seq AS bigint INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1;
+
+CREATE TABLE public.assessment_attachments (
+    id bigint DEFAULT nextval('assessment_attachments_id_seq'::regclass) NOT NULL,
+    attachable_type character varying(10) NOT NULL,
+    attachable_id bigint NOT NULL,
+    path character varying(191) NOT NULL,
+    original_name character varying(255) NOT NULL,
+    mime character varying(50) NOT NULL,
+    size integer NOT NULL,
+    uploaded_by character varying(50),
+    created_at timestamp(0) without time zone,
+    updated_at timestamp(0) without time zone
+);
+
+ALTER SEQUENCE public.assessment_attachments_id_seq OWNED BY public.assessment_attachments.id;
+
+ALTER TABLE public.assessment_attachments ADD CONSTRAINT assessment_attachments_path_unique UNIQUE (path);
+
+ALTER TABLE public.assessment_attachments ADD CONSTRAINT assessment_attachments_pkey PRIMARY KEY (id);
+
+CREATE INDEX assessment_attachments_attachable_type_attachable_id_index ON public.assessment_attachments USING btree (attachable_type, attachable_id);
+
+ALTER TABLE public.assessment_attachments ENABLE ROW LEVEL SECURITY;

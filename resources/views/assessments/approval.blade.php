@@ -70,6 +70,7 @@
                                 <th class="px-3 py-3 text-right">@include('assessments.partials.heading', ['key' => 'points'])</th>
                                 <th class="min-w-[6rem] px-3 py-3 text-center"><span class="block whitespace-nowrap font-semibold text-slate-700">總分</span><span class="block whitespace-nowrap text-xs font-normal text-slate-500">{{ t('Nilai Akhir') }}</span></th>
                                 <th class="min-w-[14rem] px-3 py-3">@include('assessments.partials.heading', ['key' => 'notes'])</th>
+                                <th class="px-3 py-3 font-semibold text-slate-700">{{ tb('Lampiran') }}</th>
                                 <th class="px-3 py-3 text-right font-semibold text-slate-700">{{ tb('Kembalikan') }}</th>
                             </tr>
                         </thead>
@@ -110,6 +111,7 @@
                                             <span class="text-slate-400">–</span>
                                         @endforelse
                                     </td>
+                                    <td class="px-3 py-2">@include('partials.attachments.list', ['attachments' => $assessment->attachments, 'compact' => true])</td>
                                     <td class="whitespace-nowrap px-3 py-2 text-right">
                                         @if ($row['selectable'])
                                             <button type="button"
