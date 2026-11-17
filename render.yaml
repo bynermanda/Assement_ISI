@@ -49,8 +49,8 @@ services:
         value: file
       - key: SESSION_SECURE_COOKIE   # login cookie only over HTTPS
         value: "true"
-      - key: FORCE_PASSWORD_CHANGE   # new / reset accounts must choose their own password at first login
-        value: "true"
+      - key: FORCE_PASSWORD_CHANGE   # "true" = new / reset accounts must choose their own password at first login (set "false" only during trials)
+        value: "false"
       - key: DEFAULT_ACCOUNT_PASSWORD
         sync: false
       # Assessment attachments: private Supabase Storage bucket via its S3 protocol
